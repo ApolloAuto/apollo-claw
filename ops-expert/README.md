@@ -1,246 +1,116 @@
-# Apollo Ops Expert：公网 npm 插件 + GitHub skills/预设
+# Apollo Ops Expert
 
-这个目录是从原 `/apollo_workspace/packaging` 拆出的新分发方案。**原目录和原归档 `/apollo_workspace/ops-Expert.tar.gz` 不修改**。
+Apollo 运维与开发技能包，附带一个 DSH Web 侧边栏插件。
 
-## 当前发布状态（已验证）
+## 包含什么
 
-```
-npm 包名  @apollo-ops/dsh-client-ui-apollo-ops
-已发布    1.0.3   （dist-tags.latest = 1.0.3）
-tarball   https://registry.npmjs.org/@apollo-ops/dsh-client-ui-apollo-ops/-/dsh-client-ui-apollo-ops-1.0.3.tgz
-sha1      c0efe78956d4d7fc160b17a88c18b507f9c6fde5
-文件数    36 ／ 解包 1.0 MB
-```
+| 组成 | 说明 |
+|---|---|
+| 21 个 skill | 8 个运维 + 13 个 Apollo 11.0 开发 |
+| 2 个 agent 预设 | 「Apollo 运维工程师」「Apollo 开发工程师」，两者能看到的 skill 互不重叠 |
+| 1 个 Web 插件 | 侧边栏 Apollo Ops Expert：Cyber 通道监控、传感器链路、运行控制、清理存储 |
 
-已实测：在全新 `DSH_HOME` 执行 `dsh plugin --profile web add @apollo-ops/dsh-client-ui-apollo-ops@1.0.3`
-可成功安装，并被 profile 组合树以 `ui-apollo-ops` 正常加载。
+**运维类（8 个）**
 
-> registry 的 `versions` 里还会看到一个 `0.0.0-stage`，那是 npm 对「新包首发」自动创建的占位版本，
-> 不影响安装（`latest` 指向 1.0.3），无需处理。
+`apollo-env`（导航入口）、`apollo-env-check`（环境检测）、`apollo-install`（安装与诊断）、
+`apollo-vehicle-restore`（车型配置切换/恢复/回滚）、`apollo-vehicle-usage`（车辆使用问答）、
+`apollo-gnss-config`（NTRIP 基站）、`apollo-lidar-config`（激光雷达）、`apollo-camera-config`（相机）
 
-## 分发结构
+**开发类（13 个）**
 
-- `plugin/`：可发布到公网 npm 的 UI 插件本体。
-- `github-assets/`：放进 GitHub 仓库的资源：21 个 skills 压缩包、两个预设及预设安装脚本。
-- `install.sh`：新机器一键安装 npm 插件 + GitHub skills + 两个预设。
-- `publish-plugin.sh`：发布 `plugin/` 到 npmjs.org。
+`apollo-dev`（总入口）、`apollo-architecture`（代码结构导航）、`apollo-build-test`（编译与测试）、
+`apollo-debug`（运行时排障）、`apollo-new-component`（新建模块）、`apollo-plugin-dev`（插件开发）、
+`apollo-planning-dev`、`apollo-control-dev`、`apollo-perception-dev`、`apollo-localization-dev`、
+`apollo-gnss-driver`、`apollo-hmi-dev`、`apollo-vehicle-sensor`
 
-## 第一次发布插件到公网 npm
+## 安装
 
-先把 `plugin/package.json` 的包名改成你自己的 npm scope。例如 npm 用户名是 `apollo-ops`，则使用：
-
-```json
-"name": "@apollo-ops/dsh-client-ui-apollo-ops",
-"version": "1.0.3"
-```
-
-`@deepseek-ai` 不是你的 scope，不能直接发布。
-
-登录 npm 并发布：
+前置：Node.js 22+、pnpm、已安装 `@deepseek-ai/dsh`。
 
 ```bash
-cd /apollo_workspace/apolloopuexpert
-npm login --registry=https://registry.npmjs.org/
-npm whoami
-PUBLISH_CONFIRM=YES ./publish-plugin.sh
+curl -fsSL https://raw.githubusercontent.com/ApolloAuto/apollo-claw/EDU/ops-expert/install.sh | bash
 ```
 
-发布前脚本会先运行 `npm pack --dry-run`，确认包内容后才真正发布。npm 的同一版本不可覆盖；以后更新插件必须递增版本号，例如 `1.0.4`、`1.1.0`。
-
-## 把 skills 和预设放到 GitHub
-
-### ⚠️ 先注意目录位置
-
-本目录位于 `/apollo_workspace` 内，而 `/apollo_workspace` 是一个指向
-`ApolloAuto/application-core` 的 git 仓库。**不要在这里 `git init`**（会形成嵌套仓库），
-也**不要**试图提交到那个官方仓库。
-
-正确做法：把目录复制到工作区外，在那里单独建仓库。已经准备好一份：
-
-```text
-~/apollo-ops-dist          ← 已 git init 并完成首次提交
-```
-
-更新后重新同步（覆盖过去，再提交）：
-
-```bash
-rsync -a --delete --exclude '.git' /apollo_workspace/apolloopuexpert/ ~/apollo-ops-dist/
-cd ~/apollo-ops-dist && git add -A && git commit -m "sync from packaging"
-```
-
-（`/apollo_workspace/.git/info/exclude` 里已加入 `apolloopuexpert/`，本地 git 会忽略它，不会误提交到 Apollo 仓库。）
-
-### 创建仓库并推送
-
-创建 GitHub 仓库，例如：
-
-```text
-https://github.com/apollo-ops/apollo-ops
-```
-
-```bash
-cd ~/apollo-ops-dist
-git remote add origin https://github.com/apollo-ops/apollo-ops.git
-git branch -M main
-git push -u origin main
-```
-
-### 63MB 的 skills 包：建议改用 Releases
-
-`github-assets/apollo-skills-envdev-*.tar.gz` 约 63MB（GitHub 单文件上限 100MB，能推）。
-但**每次更新都提交一个新 63MB 包，仓库历史会迅速膨胀**。更推荐把 skills 包放到
-GitHub **Releases**，仓库里只留安装脚本和预设：
-
-1. Releases → Draft a new release → 上传 `apollo-skills-envdev-*.tar.gz`
-2. 把 `github-assets/release.env` 的 `SKILLS_ARCHIVE` 改成完整 URL：
-
-```text
-SKILLS_ARCHIVE=https://github.com/apollo-ops/apollo-ops/releases/latest/download/apollo-skills-envdev-0.1.3-alpha.1.tar.gz
-```
-
-`install.sh` 已支持 `SKILLS_ARCHIVE` 写完整 URL（也支持纯文件名走 raw），两种都行。
-这样以后换 skills 版本只需重传 Release 附件，仓库保持很小。
-
-把 `github-assets/` 目录中的内容提交到仓库 `main` 分支：
-
-```bash
-cd /apollo_workspace/apolloopuexpert
-git init
-git add github-assets install.sh README.md
- git commit -m "发布 Apollo Ops skills 和 presets"
-git branch -M main
-git remote add origin https://github.com/apollo-ops/apollo-ops.git
-git push -u origin main
-```
-
-如果这个目录最终单独作为 GitHub 仓库根目录，建议把 `github-assets/` 里面的内容移动到仓库根目录，并相应调整 `--github-raw` 地址；当前 `install.sh` 预期的 raw 根目录是 GitHub 仓库里的 `github-assets/`。
-
-对应 raw 地址示例：
-
-```text
-https://raw.githubusercontent.com/apollo-ops/apollo-ops/main/github-assets
-```
-
-## 资源放哪里：两种来源，任选其一
-
-`install.sh` 支持两种资源来源，功能完全等价（都已实测）：
-
-| 方式 | 参数 | 你把什么放上网 | 适合 |
-|---|---|---|---|
-| 目录形态 | `--github-raw <URL>` | `github-assets/` 整个目录（`release.env` + `presets-only/` + skills 包） | GitHub 仓库、任意 HTTP 目录 |
-| 单文件 | `--assets-tarball <URL>` | 一个 `apollo-ops-assets-*.tar.gz` | 阿里云 OSS / S3 / 任意对象存储 |
-
-单文件模式用 `./pack-assets.sh` 生成（含 skills 约 63MB）：
-
-```bash
-./pack-assets.sh            # 生成 dist/apollo-ops-assets-<版本>.tar.gz
-./pack-assets.sh --no-skills # 只要几 KB（skills 走 release.env 里的完整 URL）
-```
-
-然后把那个 tar.gz 传到任意**公网可读**的地址即可（OSS/S3/nginx 都行，只要是直链）。
-
-## 新环境一键安装
-
-目标机器需要先安装 DSH、Node.js、pnpm、curl、tar：
-
-```bash
-npm install -g @deepseek-ai/dsh pnpm
-```
-
-然后用下面任一条命令安装（二选一）：
-
-```bash
-# 方式 A：资源在 GitHub / HTTP 目录
-bash install.sh \
-  --npm-package @apollo-ops/dsh-client-ui-apollo-ops \
-  --github-raw https://raw.githubusercontent.com/<你的GitHub用户名>/apollo-ops-expert/main/github-assets
-
-# 方式 B：资源是云端一个 tar.gz
-bash install.sh \
-  --npm-package @apollo-ops/dsh-client-ui-apollo-ops \
-  --assets-tarball https://你的存储地址/apollo-ops-assets-0.1.3-alpha.1.tar.gz
-```
-
-指定默认运维预设：
-
-```bash
-bash install.sh \
-  --npm-package @apollo-ops/dsh-client-ui-apollo-ops \
-  --github-raw https://raw.githubusercontent.com/apollo-ops/apollo-ops/main/github-assets \
-  --default apollo-env
-```
-
-安装过程会自动完成：
-
-1. 用 `dsh plugin --profile web add` 从公网 npm 安装 UI 插件。
-2. 从 GitHub Raw 下载 21 个 skills 到 `$DSH_HOME/skills`。
-3. 从 GitHub Raw 下载两个预设和安装脚本。
-4. 自动接线 `cordis.patch.yml`。
-5. 自动生成运维 8 个 / 开发 13 个 skill 作用域视图。
-6. 标准模式仍然可以读取全部 21 个 skill。
-
-完成后重启：
+装完重启：
 
 ```bash
 dsh web
 ```
 
-## 更新方式
+安装过程会自动完成：装插件 → 装 21 个 skill → 装两个预设并接线 → 生成 skill 作用域视图。
 
-### 更新插件
-
-修改 `plugin/` 后递增 `plugin/package.json` 的版本号，再发布：
+想指定默认预设：
 
 ```bash
-PUBLISH_CONFIRM=YES ./publish-plugin.sh
+curl -fsSL https://raw.githubusercontent.com/ApolloAuto/apollo-claw/EDU/ops-expert/install.sh \
+  | bash -s -- --default apollo-env
 ```
 
-目标机器更新：
+## 使用
+
+### 1. 选预设
+
+Web 界面的预设选择器里会出现：
+
+- **Apollo 运维工程师** —— 只能看到 8 个运维 skill
+- **Apollo 开发工程师** —— 只能看到 13 个开发 skill
+
+标准模式不受影响，21 个 skill 全部可用。
+
+### 2. 用 skill
+
+直接用自然语言说需求，agent 会自动加载对应 skill：
+
+| 你说 | 走哪个 |
+|---|---|
+| 环境检测一下 / Docker 起没起 | `apollo-env-check` |
+| 帮我装 Apollo / buildtool 报错 | `apollo-install` |
+| 把车配置成 HQEV | `apollo-vehicle-restore` |
+| 基站连不上 / NTRIP 检查 | `apollo-gnss-config` |
+| 雷达点云没数据 | `apollo-lidar-config` |
+| 磁盘满了，清一下录包 | 清理存储（先预览，确认后执行） |
+| planning 不出轨迹 | `apollo-planning-dev` |
+| 加一个新的 cyber 模块 | `apollo-new-component` |
+
+也可以直接敲命令：`/apollo-env`、`/apollo-env-check`、`/apollo-install`、`/apollo-lidar-config` 等。
+
+### 3. 用插件
+
+侧边栏底部「Apollo Ops Expert」：
+
+- **Cyber 通道**：观看在用 channel 的发布频率
+- **传感器链路**：GNSS / 激光雷达 / 相机的 IP 与连通状态
+- **运行控制**：启停 DreamView、关闭所有模块、清理存储
+- **终端 / 文件**：不用切窗口就能在工程里操作
+
+## 验证
 
 ```bash
-dsh plugin --profile web add @apollo-ops/dsh-client-ui-apollo-ops@1.0.4
+dsh --profile web --dump-config | grep -E 'id: preset-apollo|ui-apollo-ops'
 ```
 
-### 更新 skills
+应当能看到 `preset-apollo-env`、`preset-apollo-dev` 和 `ui-apollo-ops`。
 
-重新生成 `github-assets/` 里的 skills tar，提交 GitHub。为了避免缓存，建议改文件名版本，例如：
-
-```text
-apollo-skills-envdev-0.1.4.tar.gz
-```
-
-推荐用 `sync-from-packaging.sh` 同步：它会自动更新 `github-assets/release.env` 里的 `SKILLS_ARCHIVE`，`install.sh` 每次安装都会先读这个清单，所以**不需要**改 `install.sh` 的代码。
-
-### 更新预设
-
-修改原 `packaging/presets-only/`（或直接改 `github-assets/presets-only/`），提交 GitHub 后重新执行 `install.sh` 即可。预设安装脚本会备份旧预设、重建 skill 作用域视图，并重新接线 profile。
-
-## 后续更新：一条命令从原包同步
-
-以后你在原 `packaging/` 里更新了插件/skills/预设，运行一次同步脚本即可，不用手动拷贝：
+## 卸载
 
 ```bash
-cd /apollo_workspace/apolloopuexpert
-# 默认同步为 @apollo-ops/... @1.0.3；发正式版前用真实 scope 和新版本号：
-NPM_SCOPE=@apollo-ops PLUGIN_VERSION=1.0.4 ./sync-from-packaging.sh
+dsh plugin --profile web remove @apollo-ops/dsh-client-ui-apollo-ops
+rm -rf ~/.dsh/.agent-presets/apollo-env ~/.dsh/.agent-presets/apollo-dev
 ```
 
-它自动完成：
+再从 `~/.dsh/profiles/web/cordis.patch.yml` 里删掉 `preset-apollo-env` / `preset-apollo-dev` 两段，重启 `dsh web`。
 
-- 用原 `packaging/` 最新的插件 tgz 重建 `plugin/`，并把包名/版本改写为你的 scope（含 `cordis.patch.yml` 与 lib 内的插件身份字符串）；
-- 拷贝最新 skills tar 到 `github-assets/`，并重新生成 `github-assets/release.env`；
-- 同步 `presets-only/`（两个预设 + `install-presets.sh`）。
+## 环境要求
 
-然后按“第一次发布插件到公网 npm”和“把 skills 和预设放到 GitHub”两节操作即可。
+- 运维类 skill 需要在 Apollo 工作区执行（存在 `/apollo_workspace`、`/opt/apollo/neo`）
+- 开发类 skill 需要 Apollo 11.0 源码树
+- 不满足时 skill 仍可加载，但具体命令会提示先准备环境
 
-## 与原完整包的关系
+## 清理存储说明
 
-原完整包仍然保留在：
+侧边栏「清理存储」和自然语言「清理录包」是同一个动作，清理范围仅限 `/apollo_workspace/data/` 下：
 
-```text
-/apollo_workspace/ops-Expert.tar.gz
-```
+- `record/`、`records/`、`core/` 的**内容**（保留目录本身）
+- `log/` 里**不以 `.INFO` 结尾**的日志（`.INFO` 保留）
 
-本目录是新的“公网 npm + GitHub”拆分方案，不会修改原包。原包仍适合离线/内网完整迁移；本目录适合公网按组件更新。
-
-注意：`install.sh` 默认不安装 `dsh-lan-access`，因为它会绑定 `0.0.0.0` 并关闭认证。需要该补丁时，继续使用原完整包的 `packaging/deploy.sh --with-lan`，并确保网络环境可信。
+执行前一定会先给出「将删除多少条目、释放多少空间」的预览，确认后才真正删除。这是清磁盘，不是清内存。
