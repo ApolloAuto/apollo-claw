@@ -128,13 +128,3 @@ apollo-claw/
 - 评分评估：[`apollo-eval/README.md`](./apollo-eval/README.md)
 
 更细的知识库索引见各模块的 `references/knowledge_index.md`。
-
-## 另：Apollo Ops Expert（运维/开发技能 + Web 插件）
-
-`ops-expert/` 目录是一套额外的运维与开发技能组合，与上面的 EDU 赛道技能相互独立：
-
-- 21 个 skill（8 个运维 + 13 个 11.0 开发）
-- 两个 agent 预设（Apollo 运维工程师 / Apollo 开发工程师），带 skill 作用域隔离
-- 一个 Web 插件（侧边栏 Apollo Ops Expert，含 Cyber 通道监控、传感器链路、清理存储）
-
-安装方式见 [`ops-expert/README.md`](./ops-expert/README.md)。
