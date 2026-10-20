@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
-# Apollo Ops Expert 一键安装：公网 npm 插件 + skills/预设资源。
+# Apollo Ops Expert 一键安装。直接执行即可：
+#   curl -fsSL <本文件地址> | bash
 #
-# 资源来源二选一：
-#   1) --github-raw URL      目录形态（GitHub raw / 任意 HTTP 目录）
-#   2) --assets-tarball URL  单个 tar.gz（任意云端存储都行，解包后即为目录）
+# 如需自定义资源位置，可用：
+#   --github-raw URL      目录形态资源
+#   --assets-tarball URL  单个 tar.gz 资源包
 set -euo pipefail
 
-PLUGIN_PACKAGE="${APOLLO_OPS_NPM_PACKAGE:-}"
+DEFAULT_PLUGIN_PACKAGE="@apollo-ops/dsh-client-ui-apollo-ops"
+DEFAULT_GITHUB_RAW="https://raw.githubusercontent.com/ApolloAuto/apollo-claw/EDU/ops-expert/github-assets"
+
+PLUGIN_PACKAGE="${APOLLO_OPS_NPM_PACKAGE:-$DEFAULT_PLUGIN_PACKAGE}"
 PLUGIN_VERSION="${APOLLO_OPS_NPM_VERSION:-latest}"
-GITHUB_RAW_BASE_URL="${APOLLO_OPS_GITHUB_RAW_BASE_URL:-}"
+GITHUB_RAW_BASE_URL="${APOLLO_OPS_GITHUB_RAW_BASE_URL:-$DEFAULT_GITHUB_RAW}"
 ASSETS_TARBALL="${APOLLO_OPS_ASSETS_TARBALL:-}"
 PROFILE="${DSH_PROFILE:-web}"
 DSH_HOME_DIR="${DSH_HOME:-$HOME/.dsh}"
