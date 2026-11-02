@@ -1,3 +1,0 @@
-name: Apollo 开发工程师
-description: 百度 Apollo 自动驾驶开发助手：Apollo 11.0 源码级二次开发、官方应用实践、EDU PnC 场景开发，内置版本判别与环境核对。自带 apollo-dev 主 skill（约 170 篇文档），并按意图路由到 12 个 11.0 专项 skill：架构导航 / 编译测试 / 运行时调试 / 新组件 / 插件开发 / 规划 / 控制 / 感知 / 定位 / GNSS 驱动 / HMI / 车型传感器。
-order: 11

@@ -5,7 +5,7 @@
 ### 1. Demo 模式（无需任何外部依赖）
 
 ```bash
-PYTHONIOENCODING=utf-8 python3 /apollo_workspace/grading_system_py/main.py \
+PYTHONIOENCODING=utf-8 python3 ${SKILL_SCRIPTS}/grading_system_py/main.py \
   --config /apollo_workspace/metric/1.json \
   --mode demo
 ```
@@ -13,7 +13,7 @@ PYTHONIOENCODING=utf-8 python3 /apollo_workspace/grading_system_py/main.py \
 ### 2. 读取 Bag 文件（离线评分）
 
 ```bash
-python3 /apollo_workspace/grading_system_py/main.py \
+python3 ${SKILL_SCRIPTS}/grading_system_py/main.py \
   --config /apollo_workspace/metric/1.json \
   --scenario /apollo-simulator/input_data/1.json \
   --mode bag \
@@ -23,7 +23,7 @@ python3 /apollo_workspace/grading_system_py/main.py \
 ### 3. 订阅 Cyber 通道（实时评分）
 
 ```bash
-python3 /apollo_workspace/grading_system_py/main.py \
+python3 ${SKILL_SCRIPTS}/grading_system_py/main.py \
   --config /apollo_workspace/metric/1.json \
   --scenario /apollo-simulator/input_data/1.json \
   --mode channel
@@ -83,7 +83,7 @@ python3 /apollo_workspace/grading_system_py/main.py \
 ```bash
 for i in 1 2 3 4 5; do
   echo "=== Scenario $i ==="
-  python3 /apollo_workspace/grading_system_py/main.py \
+  python3 ${SKILL_SCRIPTS}/grading_system_py/main.py \
     --config /apollo_workspace/metric/$i.json \
     --scenario /apollo-simulator/input_data/$i.json \
     --mode bag \

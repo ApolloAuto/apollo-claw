@@ -1,0 +1,20 @@
+# apollo-defect 配置
+#
+# 缺陷记录纯文件存储：一个缺陷一个 JSON，便于 diff、备份、随工作区迁移。
+# 不用数据库，避免目标机上还要装东西。
+
+paths:
+  # 缺陷库根目录（一个缺陷一个 .json）
+  defect_root: /apollo_workspace/data/defects
+
+  # 关联批量测试结果用；verify 未指定 --run 时从这里取最新一轮
+  run_root: /apollo_workspace/data/test_runs
+
+# 新建缺陷时的默认值
+defaults:
+  severity: major        # blocker | major | minor | trivial
+  status: open           # open | investigating | fixed | verifying | closed | wontfix
+
+# 报告输出
+report:
+  dir: /apollo_workspace/data/defects/reports

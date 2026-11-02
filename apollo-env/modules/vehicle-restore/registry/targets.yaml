@@ -1,0 +1,112 @@
+schema_version: 1
+# Shared target registry. Baselines are created only from a user-confirmed healthy environment.
+defaults:
+  workspace: /apollo_workspace
+  temporary_profile: sample
+  profile_current: profiles/current
+  build_command: buildtool build -p <code_directory>
+
+targets:
+  - id: ARCF_40P
+    kind: vehicle
+    purpose: real_vehicle
+    platform: apollo
+    version: "11.0.0"
+    workspace: /apollo_workspace
+    profile_package: ARCF_40P
+    temporary_profile: sample
+    parameter_baseline: baselines/ARCF_40P/latest/parameters.yaml
+    code_baseline: baselines/ARCF_40P/latest/code.yaml
+    build_directories:
+      - modules
+    status: verified_by_user
+    identity_signal: profile_stamp
+    stamp_file: profiles/ARCF_40P/.apollo_vehicle_stamp.yaml
+    stamp_verify: bash scripts/vehicle_stamp.sh verify --target ARCF_40P
+    runtime:
+      environment_name: 11.0.0_pkg_ai-skills
+      worklocal: true
+      container_repository: registry.baidubce.com/apollo/apollo-env-gpu
+      container_tag: "11.0"
+
+  - id: ARCF_90P
+    kind: vehicle
+    purpose: real_vehicle
+    platform: apollo
+    version: "11.0.0"
+    workspace: /apollo_workspace
+    profile_package: ARCF_90P
+    temporary_profile: sample
+    parameter_baseline: baselines/ARCF_90P/latest/parameters.yaml
+    code_baseline: baselines/ARCF_90P/latest/code.yaml
+    build_directories:
+      - modules
+    # 由 ARCF_40P 派生：主雷达 40P -> Pandar90(90线)，与 40P 参数完全解耦
+    # （TF 用独立的 hesai_90 节点，不再有 lidar16_back）。
+    # 尚未上车验证，baseline 需硬件跑通后再建，故此处不标 verified。
+    status: pending_baseline
+    derived_from: ARCF_40P
+    identity_signal: profile_stamp
+    stamp_file: profiles/ARCF_90P/.apollo_vehicle_stamp.yaml
+    stamp_verify: bash scripts/vehicle_stamp.sh verify --target ARCF_90P
+    runtime:
+      environment_name: 11.0.0_pkg_ai-skills
+      worklocal: true
+      container_repository: registry.baidubce.com/apollo/apollo-env-gpu
+      container_tag: "11.0"
+
+  - id: HQEV
+    kind: vehicle
+    purpose: real_vehicle
+    platform: edu
+    version: "9.1.1"
+    workspace: /apollo_workspace
+    profile_package: HQEV
+    temporary_profile: sample
+    parameter_baseline: baselines/HQEV/latest/parameters.yaml
+    code_baseline: baselines/HQEV/latest/code.yaml
+    build_directories:
+      - modules
+    status: verified_by_user
+    identity_signal: profile_stamp   # 身份靠参数目录内 .apollo_vehicle_stamp.yaml 判定，不靠软链和 env name
+    stamp_file: profiles/HQEV/.apollo_vehicle_stamp.yaml
+    stamp_verify: bash scripts/vehicle_stamp.sh verify --target HQEV
+    runtime:
+      environment_name: edu_9.1.1-HQEV
+      environment_name_authoritative: false
+      worklocal: true
+      container_repository: registry.baidubce.com/apollo/apollo-env-gpu
+      container_tag: "9.0-latest"
+
+  - id: HQEV_BDN
+    kind: vehicle
+    purpose: real_vehicle
+    platform: edu
+    version: "9.1.1"
+    workspace: /apollo_workspace
+    profile_package: HQEV_BDN
+    temporary_profile: sample
+    parameter_baseline: baselines/HQEV_BDN/latest/parameters.yaml
+    code_baseline: baselines/HQEV_BDN/latest/code.yaml
+    build_directories:
+      - modules
+    status: verified_by_user
+    identity_signal: profile_stamp   # 身份靠参数目录内 .apollo_vehicle_stamp.yaml 判定，不靠软链和 env name
+    stamp_file: profiles/HQEV_BDN/.apollo_vehicle_stamp.yaml
+    stamp_verify: bash scripts/vehicle_stamp.sh verify --target HQEV_BDN
+    runtime:
+      environment_name: edu_9.1.1-HQEV
+      environment_name_authoritative: false
+      worklocal: true
+      container_repository: registry.baidubce.com/apollo/apollo-env-gpu
+      container_tag: "9.0-latest"
+
+  - id: edu-pnc
+    kind: project
+    purpose: simulation
+    platform: edu_pnc
+    version: from_workspace
+    workspace: /apollo_workspace
+    profile_package: default
+    temporary_profile: sample
+    status: pending_baseline

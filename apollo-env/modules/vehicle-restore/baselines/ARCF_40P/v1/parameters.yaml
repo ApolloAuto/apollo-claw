@@ -1,0 +1,63 @@
+schema_version: 1
+target_id: ARCF_40P
+baseline_id: ARCF_40P_parameters_v1
+status: verified_by_user
+platform: apollo
+apollo_version: "11.0.0"
+workspace: /apollo_workspace
+profile_package: ARCF_40P
+profile_current: /apollo_workspace/profiles/current
+expected_current_target: /apollo_workspace/profiles/ARCF_40P
+temporary_profile: sample
+runtime:
+  # environment_name 由镜像和启动方式决定，同一车型可能不同，仅供参考，不作为身份判据
+  environment_name: 11.0.0_pkg_ai-skills
+  environment_name_authoritative: false
+  worklocal: true
+  container_repository: registry.baidubce.com/apollo/apollo-env-gpu
+  container_tag: "11.0"
+identity:
+  # 恢复前的身份判定只依据下列信号，不依据 runtime.environment_name
+  authoritative:
+    profile_package: ARCF_40P
+    profile_current_target: /apollo_workspace/profiles/ARCF_40P
+    apollo_version: "11.0.0"
+  non_authoritative:
+    - runtime.environment_name
+    - runtime.container_tag
+  stamp:
+    # 指纹文件在参数目录内，随归档打包和恢复，profile 切换不影响它
+    path: /apollo_workspace/profiles/ARCF_40P/.apollo_vehicle_stamp.yaml
+    relative_path: .apollo_vehicle_stamp.yaml
+    content_hash: 2bde328c49126ab1879a2ea9863375b54ae2636aa271223cb250e1b68f620b16
+    verify_command: bash scripts/vehicle_stamp.sh verify --target ARCF_40P --workspace /apollo_workspace
+    exit_codes:
+      0: 身份与内容均一致
+      3: 身份不匹配，必须停止
+      4: 身份一致但参数内容漂移，报告不阻断
+workspace_manifest:
+  path: /apollo_workspace/.workspace.json
+  sha256: 7a0ac34f5b353bf48cade493285a8b9a2016b98d986c5bb9c839d735409b02ea
+artifact:
+  path: baselines/ARCF_40P/apollo_profiles.tar.gz
+  sha256: 87f77c2f19ae4d31732fafa7fa4e46e7909a468f4bbdcee783e24f127f419442
+  archive_root: profiles/ARCF_40P
+  file_count: 491
+  directory_count: 373
+  recorded_at: "2026-09-14"
+source:
+  path: /apollo_workspace/profiles/ARCF_40P
+  note: User-provided healthy ARCF_40P parameter directory; do not overwrite during baseline creation.
+restore:
+  workspace_required: /apollo_workspace
+  switch_to_temporary_profile: true
+  temporary_profile_command: aem profile use sample
+  temporary_switch_nonzero_is_tolerated: true
+  temporary_switch_postcheck_required: true
+  restore_into_profile_directory: true
+  restore_via_current_link: false
+  switch_back_command: aem profile use ARCF_40P
+  final_current_check_required: true
+protected_paths:
+  - /apollo_workspace/profiles/current
+  - /apollo_workspace/profiles/sample

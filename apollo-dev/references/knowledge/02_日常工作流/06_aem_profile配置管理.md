@@ -22,7 +22,7 @@ buildtool profile config init --package planning --profile=default
 
 如需对 planning 其他插件调参，包名请查阅：[Apollo Planning 文档](https://apollo.baidu.com/docs/apollo/latest/md_collection_2planning_2README__cn.html)
 
-![](../images/02_安装部署/f09cf205d2de436e378862443b474a9c.png)
+[](../images/02_安装部署/f09cf205d2de436e378862443b474a9c.png)
 
 ---
 
@@ -38,7 +38,7 @@ aem profile use default
 ```bash
 ll profiles/current
 ```
-![](../images/02_安装部署/44745f0189f0536cd411988b2bccb7a6.png)
+[](../images/02_安装部署/44745f0189f0536cd411988b2bccb7a6.png)
 
 > **重点：** 如果本地下载了源码，可能导致配置参数不生效。出现此问题时，重新执行 `aem profile use default` 即可。
 
@@ -51,14 +51,14 @@ ll profiles/current
 ```bash
 ll profiles/current
 ```
-![](../images/02_安装部署/44745f0189f0536cd411988b2bccb7a6.png)
+[](../images/02_安装部署/44745f0189f0536cd411988b2bccb7a6.png)
 
 **步骤 2：** 检查 Apollo 内部配置是否指向 `current`（以 `planning_component` 为例）：
 
 ```bash
 ll /apollo/modules/planning/planning_component/conf/
 ```
-![](../images/02_安装部署/7a9c908c9ccab7ef1ba2ea55ad1c8525.png)
+[](../images/02_安装部署/7a9c908c9ccab7ef1ba2ea55ad1c8525.png)
 
 **步骤 3：** 如果指向不对，重新执行：
 
@@ -70,7 +70,7 @@ aem profile use default
 ```bash
 ll modules/planning/planning_component/
 ```
-![](../images/02_安装部署/0fbf6a104f72a2507b4d793c34e83097.png)
+[](../images/02_安装部署/0fbf6a104f72a2507b4d793c34e83097.png)
 
 ---
 
@@ -108,6 +108,6 @@ aem profile use default
 aem profile use demo_1
 ```
 > **优势：**
-> - **场景适配**：不同赛事场景使用不同配置，快速切换
+> - **场景适配**：不同EDU 场景使用不同配置，快速切换
 > - **参数复用**：保留调优后的参数，避免重复工作
 > - **快速回滚**：随时切回之前认为最好的配置

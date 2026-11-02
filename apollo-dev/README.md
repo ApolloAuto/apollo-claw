@@ -1,26 +1,27 @@
 # apollo-dev Skill 使用文档
 
-> 版本：1.0.0 | 适用赛事：百度 Apollo 星火自动驾驶大赛（PnC 赛道）
+> 版本：2.0.0 | 定位：Apollo 分版本开发助手（11.0 源码手册 + 官方应用实践 + PnC）
 
 ---
 
 ## 一、简介
 
-`apollo-dev` 专为 **Apollo EDU PnC 赛道开发**设计，覆盖装好环境后的所有日常开发活动。
+`apollo-dev` 是 **Apollo 分版本开发助手**：一个 skill 同时覆盖三层文档，并内置环境体检与版本判别，避免"整仓常识"与"本机实测"、"9.0 口径"与"11.0 现状"互相污染。
 
-| 能力 | 说明 |
-|------|------|
-| **日常工作流** | 每日重启启动流程、编译、打包提交、Git 管理 |
-| **PnC 场景开发** | TrafficRule/Scenario/Task 插件开发，10+ 赛事场景实现 |
-| **模块调试** | mainboard 单模块启动、Planning 恢复、Dreamview 异常 |
-| **知识库检索** | 61 篇文档覆盖 PnC 开发全链路 |
+| 层 | 路径 | 口径 | 数量 |
+|------|------|------|------|
+| **11.0 源码手册** | `references/manual/` | [11.0·实测]，本机源码蒸馏、行号可回源 | 51 篇 |
+| **官方应用实践** | `references/practice/` | [官方·上游]，Apollo 文档站应用实践 | 61 篇 |
+| **EDU 版知识库** | `references/knowledge/` | [EDU·上游]，PnC 赛道 application-pnc | 51 篇 |
+| **版本差异层** | `manual/00_versions/` | 11.0 vs PNC 差异 + 47 条漂移修正 | 3 篇 |
 
 ### 核心价值
 
-- **工作流标准化**：提供三个典型开发工作流模板
-- **场景全覆盖**：支持 10+ 赛事场景的解题思路和代码实现
-- **调试利器**：mainboard 单模块启动快速定位问题
-- **知识沉淀**：61 篇精选文档，覆盖开发全链路
+- **分版本不混写**：每条结论带版本标签（`[11.0·实测]` / `[官方·上游]` / `[EDU·上游]`），来源可追溯
+- **环境体检**：换环境第一步检测 profile 覆盖层/current 参数目录、判版本形态、核对 conf 生效落点
+- **源码级答疑**：类在哪个文件、channel/proto 字段、插件怎么注册、模块为何没输出——带可回源行号
+- **二次开发全流程**：TrafficRule/Scenario/Task/ControlTask 插件、线控底盘与新车型接入，从零到生效
+- **EDU 版操作**：每日启动、aem/profile、10+ 场景解题、打包提交、Git
 
 ### 架构设计
 
@@ -29,48 +30,20 @@
 │                      apollo-dev 架构                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                               │
-│  用户触发 ──→ 问题分流 ──→ 流程路由                          │
-│     │            │              │                            │
-│     │            ├─ 日常启动 ──→ 高频快答                     │
-│     │            ├─ 场景开发 ──→ 知识库检索                   │
-│     │            ├─ 插件开发 ──→ 知识库检索                   │
-│     │            ├─ 模块调试 ──→ 速查卡片                     │
-│     │            └─ Git 管理 ──→ 高频快答 + 检索              │
+│  触发 ──→ 版本判别与手册路由（每个问题先做）                  │
+│     │            │                                            │
+│     │            ├─ 环境体检（profile 覆盖层/current 检测）    │
+│     │            │                                            │
+│     │            ├─ 11.0 源码问题 → manual/00_readme.md       │
+│     │            │    ├─ 结构/排障 → 各分册                    │
+│     │            │    ├─ 二次开发 → 15_二次开发手册/           │
+│     │            │    └─ 线控底盘 → 17_canbus底盘开发/         │
+│     │            ├─ 官方实践 → practice/00_索引.md             │
+│     │            │    （感知/Cyber/规划/CANBUS/定位/上车）      │
+│     │            └─ EDU 版操作 → knowledge/ + pnc_赛事版/      │
 │     │                                                         │
 │     ▼                                                         │
-│  ┌──────────────────────────────────────┐                   │
-│  │        高频快答系统                   │                   │
-│  ├──────────────────────────────────────┤                   │
-│  │ • 电脑重启后进入 Apollo               │                   │
-│  │ • 打包提交命令                        │                   │
-│  │ • 下载 Planning 代码                  │                   │
-│  │ • 编译后配置丢失                      │                   │
-│  │ • Git 保存与回退                      │                   │
-│  └──────────────────────────────────────┘                   │
-│     │                                                         │
-│     ▼                                                         │
-│  ┌──────────────────────────────────────┐                   │
-│  │        速查卡片系统                   │                   │
-│  ├──────────────────────────────────────┤                   │
-│  │ • mainboard 单模块启动命令            │                   │
-│  │ • Planning 模块恢复流程               │                   │
-│  │ • 编译报错速查表                      │                   │
-│  └──────────────────────────────────────┘                   │
-│     │                                                         │
-│     ▼                                                         │
-│  ┌──────────────────────────────────────┐                   │
-│  │        知识库检索系统                 │                   │
-│  ├──────────────────────────────────────┤                   │
-│  │ • 01_赛事竞赛/                        │                   │
-│  │ • 02_日常工作流/ (4 文件)             │                   │
-│  │ • 03_规划PnC/ (19 文件)               │                   │
-│  │ • 04_赛事集锦/ (11 文件)              │                   │
-│  │ • 05_工程框架与工具/                  │                   │
-│  │ • 06_技术培训/                        │                   │
-│  │ • 07_FAQ故障排查/ (7 文件)            │                   │
-│  │ • 08_硬件传感器/                      │                   │
-│  │ • 09_地图资源/                        │                   │
-│  └──────────────────────────────────────┘                   │
+│  分层检索（grep/glob）→ 回答时标注来源层与版本标签             │
 │                                                               │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -85,58 +58,67 @@
 
 ## 三、自然语言触发
 
-> `PnC`、`Planning`、`规划`、`场景`、`插件`、`TrafficRule`、`Scenario`、`profile`、`Dreamview`、`SimControl`、`星火大赛`、`借道`、`泊车`、`交汇`、`人行道`、`mainboard`、`编译后配置丢失`、`打包提交`、`Git`
+> 11.0、源码、二次开发、插件、TrafficRule、Scenario、Task、ControlTask、线控底盘、canbus、车型、新车型、感知、Cyber、channel、proto、conf 不生效、profile、current、版本判别、环境体检、应用实践、CANBUS、PnC、Planning、规划、场景、泊车、借道、人行道、交汇、动态避障、Dreamview、SimControl、buildtool install、mainboard、打包提交、Git、Apollo EDU
 
 ---
 
 ## 四、典型使用场景
 
-### 场景 A：每日开发启动
+### 场景 A：环境体检（每个环境第一步）
 
 ```
-/apollo-dev → 电脑重启后怎么进入 Apollo？
+/apollo-dev → 这个环境改 conf 生效在哪？
 ```
 
-直接回答：`cd application-pnc && aem start && aem enter`
+引导：`readlink profiles/current` + 抽查 `planning.conf` 落点 → 判定 profile 覆盖层 / share 出厂件，再决定改哪份。
 
-### 场景 B：场景开发
+### 场景 B：11.0 二次开发
+
+```
+/apollo-dev → 在 11.0 上加一个限速 TrafficRule
+```
+
+依据 `manual/15_二次开发手册/01_新增TrafficRule.md`：buildtool create → 六件套 → 注册 → 编译 install → 进配置 → 验证（含实测的参数坑）。
+
+### 场景 C：线控底盘 / 新车型
+
+```
+/apollo-dev → 新车型怎么接入 Apollo？
+```
+
+依据 `manual/17_canbus底盘开发/03_新车型接入全流程.md` + `practice/42-44`（官方线控标准/CANBUS 生成/DBC 验证）交叉对照。
+
+### 场景 D：EDU 版操作
 
 ```
 /apollo-dev → 借道绕行场景怎么实现？
 ```
 
-检索 `03_规划PnC/13_场景—借道绕行解题思路.md` 和 `04_赛事集锦/05_场景—借道绕行.md`。
-
-支持 10+ 赛事场景：借道绕行、交汇路口减速、人行道避让、自主泊车、动态避障、交通标志停止线、施工区域减速、特殊车辆绕行、断头路、红绿灯路口减速、减速带通行、慢速车绕行、左转待转。
-
-### 场景 C：模块打不开
-
-```
-/apollo-dev → Planning 模块在 DreamView 中打不开
-```
-
-引导使用 `mainboard -d` 单独启动排查，或执行 Planning 模块完整恢复流程。
+检索 `knowledge/03_规划PnC/` + `04_赛事集锦/`（EDU 版口径），与 11.0 差异看 `pnc_赛事版/00_知识归属与差异标注表.md`。
 
 ---
 
-## 五、文件结构
+## 五、11.0 开发专项模块
 
-```
-apollo-dev/
-├── _meta.json
-├── config.yaml
-├── SKILL.md
-├── README.md
-└── references/
-    ├── knowledge_index.md
-    └── knowledge/
-        ├── 01_赛事竞赛/       # 赛事报名指南
-        ├── 02_日常工作流/     # 4 个文件（profile、重启、打包、Git）
-        ├── 03_规划PnC/        # 19 个文件（PnC 开发核心）
-        ├── 04_赛事集锦/       # 11 个文件（场景解题代码）
-        ├── 05_工程框架与工具/ # Dreamview、包管理
-        ├── 06_技术培训/       # 备赛课程
-        ├── 07_FAQ故障排查/    # 7 个文件（开发相关报错）
-        ├── 08_硬件传感器/     # 传感器适配、CAN 协议
-        └── 09_地图资源/       # 地图和场景获取
-```
+代码级开发任务先读对应 `modules/<name>/README.md` 再动手；这些是文档 + 脚本，不是独立 skill。`references/manual/` 用于查类位置、行号和 proto 字段。
+
+| 模块 | 适用场景 |
+|---|---|
+| `modules/architecture/` | 不确定功能属于哪个模块、从哪个文件入手、channel 走向、启动顺序 |
+| `modules/build-test/` | 编译单模块、bazel 单测、lint、进 docker、链接错误 |
+| `modules/debug/` | 模块起不来、不发消息、频率异常、崩溃、conf 不生效 |
+| `modules/new-component/` | 新建 Cyber 模块或 Component、dag/launch/conf/cyberfile.xml |
+| `modules/plugin-dev/` | 加改插件、plugins.xml、注册不生效 |
+| `modules/planning-dev/` | Planning 的 task/scenario/stage/traffic_rule、规划参数、泊车 |
+| `modules/control-dev/` | 控制器、横纵向参数、标定表、ControlCommand |
+| `modules/perception-dev/` | 检测/分割/跟踪/滤波、模型与推理后端、感知 pipeline |
+| `modules/localization-dev/` | RTK/NDT/MSF 融合、定位地图、安装角与杆臂标定 |
+| `modules/gnss-driver/` | GNSS/INS 协议解析、串口/TCP/UDP/NTRIP 连接 |
+| `modules/hmi-dev/` | DreamView 面板与接口、HMI 模式、车型配置、SimControl |
+| `modules/vehicle-sensor/` | 新车型适配、CAN 报文、CAN 卡、传感器外参 |
+
+## 六、文档指引
+
+- **入口**：`references/manual/00_readme.md`（分层模型 + 意图检索表 + 文件清单）
+- **写作规范**：`references/manual/_template.md`（八节骨架 + 版本标签铁律）
+- **验收记录**：`references/manual/00_P5走查与抽查记录.md`

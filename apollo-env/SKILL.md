@@ -1,230 +1,82 @@
 ---
 name: apollo-env
-description: Apollo EDU 赛事环境安装与检测工具。当用户遇到以下场景时使用此 Skill：(1) 全新安装 Apollo（Docker、aem、工程克隆、buildtool build）(2) 环境检测与状态报告（OS、CPU、内存、磁盘、网络、aem、buildtool）(3) 安装过程报错与故障诊断（Docker 安装失败、aem 命令不存在、apt source 问题、buildtool build -p core 报错、application-pnc 克隆失败）(4) 编译缓存下载（首次安装时网络差）(5) 赛事场景插件下载（Profile Plugin）。触发关键词：安装Apollo、安装 Apollo、install apollo、Docker安装、aem安装、aem install、docker、全新环境、环境检测、env check、application-pnc克隆、buildtool build -p core、编译缓存、apollo-pkg、apt source、环境配置。命令入口：/apollo-env、/apollo-env check、/apollo-env diagnose、/apollo-env install。
+description: Apollo 环境能力导航入口。根据用户需求路由到对应模块：环境检测（apollo-env-check）、安装与诊断（apollo-install）、车型配置切换/恢复（apollo-vehicle-restore）、车辆使用说明（apollo-vehicle-usage）。动作意图优先于车型关键词：整成/换成 HQEV 配置走 restore；HQEV 怎么解锁/充电才走 usage。其他能力：GNSS 基站（apollo-gnss-config）、激光雷达（apollo-lidar-config）、相机（apollo-camera-config）。触发关键词：恢复、回滚、基线、车型、基站、NTRIP、雷达、lidar、相机、camera、环境检测、安装、诊断、HQEV、车辆使用。命令入口：/apollo-env 及各子 skill 命令。
 ---
 
-# Apollo EDU 环境安装引导
+# Apollo 环境能力导航
 
-专注于 Apollo EDU PnC 赛道的系统安装、环境检测与故障诊断，覆盖从全新 Ubuntu 到 DreamView 可访问的完整安装链路。
+本 skill 是导航入口，按用户需求路由到对应的功能子 skill，不直接承载具体功能。
 
-**知识库路径**：`{BASE_DIR}/references/knowledge/`
-**环境检测脚本**：`{BASE_DIR}/scripts/env_check.sh`
-**配置文件**：`{BASE_DIR}/config.yaml`
-> `{BASE_DIR}` 为本 skill 加载时顶部显示的 "Base directory for this skill" 路径。
+## 路由防误判规则（读模块文档前必须执行）
 
----
+1. **先识别动作与对象，再匹配关键词。** HQEV、ARCF_40P 等车型名只是目标参数，不能单凭车型名路由到车辆使用说明。
+2. **区分配置变更与车辆操作。** 「切换车型」「换成 X」「整成 X 的配置」「配置成 X」「恢复 X」「回滚车型」属于车型配置变更，路由到 `modules/vehicle-restore/`；只有明确询问车辆解锁、上电、驾驶操作、充电或使用说明时才路由到 `modules/vehicle-usage/`。「启动」需结合对象判断：启动车辆操作与启动软件模块不是同一需求。
+3. **具体对象优先。** 「给 HQEV 配基站 / 雷达 / 相机」分别路由到 GNSS / lidar / camera 子 skill，不因包含车型名而切换整车配置。安装、编译或 profile 故障诊断走 `modules/install/`，明确要求切换车型配置则走 `modules/vehicle-restore/`。
+4. **调用前做反向核对。** 用一句话在内部确认「用户要执行的动作 → 子 skill 的职责」。若选中 usage，但用户要求的是修改 / 切换配置，必须纠正为对应配置技能，不得先调用 usage 试探。
+5. **只对真正歧义提问。** 仅说「HQEV」「帮我弄一下车」时，先询问要切换配置还是查看使用方法；「整成 HQEV 的配置」意图已明确，不重复询问。复合请求分别处理，不用一个关键词覆盖所有动作。
+6. **技能不可用不改变用户意图。** 路由表不是当前可用技能清单。对目录中未注册的子 skill，不盲目调用；可检查本地注册表和对应 `SKILL.md` 获取执行说明。调用返回 unknown / unavailable 后，不得改调职责不符的技能，也不得凭导航表猜测执行命令；找不到说明则明确报告缺失。切换车型前仍须按对应执行说明核对环境、目标配置和备份，不得直接写入未经核实的参数。
 
-## 环境感知
+### 路由回归用例
 
-在执行任何步骤前，先判断用户所处环境：
+修改本入口的路由规则时，必须逐条核对以下用例。它们是人工核对用例，不是已实现的自动化测试。
 
-| 信号 | 判断方法 | 结论 | 影响 |
-|------|----------|------|------|
-| 提示符含 `in-dev-docker` 或当前目录为 `/apollo_workspace` | 观察终端提示符或 `pwd` | **Apollo 容器内** | 跳过 Docker/aem 安装，直接引导 buildtool/DreamView |
-| 存在 `/.dockerenv` 文件 | `test -f /.dockerenv && echo "容器内"` | **容器内** | 同上 |
-| `aem` 和 `docker` 均可执行 | `command -v aem && command -v docker` | **宿主机，已部分安装** | 运行 env_check.sh 检测后补缺 |
-| 均不可用 | — | **全新环境** | 从头引导完整安装 |
+| 用户表达 | 期望路由 / 行为 | 禁止误判 |
+|---|---|---|
+| `/apollo-env 你给我整成HQEV的配置行吗` | `modules/vehicle-restore/` | 不调用 usage，不要求重复确认意图 |
+| `切换成 HQEV` / `换成 ARCF_40P 的配置` | `modules/vehicle-restore/` | 不按车型名路由到 usage |
+| `恢复 HQEV 基线` / `回滚车型配置` | `modules/vehicle-restore/` | 不当成车辆使用说明 |
+| `HQEV 怎么解锁 / 充电` | `modules/vehicle-usage/` | 不修改车型配置 |
+| `给 HQEV 配基站` | `modules/gnss-config/` | 不切换整车配置 |
+| `给 HQEV 配雷达 / 相机` | `modules/lidar-config/` / `modules/camera-config/` | 不按车型名路由到 usage |
+| `profile 切换报错，帮我诊断` | `modules/install/` | 不擅自恢复车型 |
+| `HQEV` / `帮我弄一下车` | 先澄清具体动作 | 不猜测配置变更或车辆操作 |
+| 车型切换子技能不可用 | 检查本地说明；缺失则报告阻塞 | 不回退到 usage，不猜命令 |
 
----
+## 路由表
 
-## 问题分流
+本 skill 是**唯一入口**。下表命中的能力都在本 skill 的 `modules/` 下，是文档+脚本，不是独立 skill ——
+**先用文件读取打开对应 `README.md`，再按里面的步骤执行**。
 
-| 问题类型 | 执行流程 |
-|---------|---------|
-| 安装 Apollo、配置环境 | → 流程 A（完整安装引导） |
-| `/apollo-env` | → 流程 A |
-| `/apollo-env check` | → 流程 A Step 1（仅检测） |
-| `/apollo-env install` | → 流程 A Step 2（跳过检测，直接安装） |
-| `/apollo-env diagnose` 或安装报错 | → 流程 A Step 6（故障诊断） |
-| `buildtool build -p core` 首次报错 | → 先查高频快答，未命中则检索 `07_FAQ故障排查/buildtool build -p core 报错指南.md` |
-| 电脑重启后怎么进入 Apollo / 重新打开 Apollo | → 流程 B（重启后快速进入） |
+| 需求 | 模块（相对本 skill 根目录） | 脚本入口 |
+|---|---|---|
+| 环境检测（OS/CPU/内存/磁盘/Docker/网络） | `modules/env-check/README.md` | `modules/env-check/scripts/env_check.sh` |
+| 安装 Apollo / 编译诊断 / profile 故障 | `modules/install/README.md` | `modules/install/scripts/diagnose.sh` |
+| 切换车型配置 / 恢复车型 / 回滚 / 建立基线 / 车型指纹 | `modules/vehicle-restore/README.md` | `modules/vehicle-restore/scripts/restore_plan.py` |
+| 车辆解锁 / 启动 / 充电 / 常见问题 | `modules/vehicle-usage/README.md` | —（纯说明） |
+| GNSS 基站配置 / 检查 | `modules/gnss-config/README.md` | `modules/gnss-config/scripts/configure_ntrip_base.py` |
+| 激光雷达配置 / 检查 | `modules/lidar-config/README.md` | `modules/lidar-config/scripts/configure_lidar.py` |
+| 相机配置 / 检查 / 新增 | `modules/camera-config/README.md` | `modules/camera-config/scripts/` |
 
----
+## 清理存储（磁盘，不是内存）
 
-## 高频快答
+用户说「清理录包 / 磁盘满了 / 清理 core / 清日志 / 清理存储」时，用本 skill 自带的清理脚本，**不要**手敲 rm。
 
-| 问题 | 快速回答 |
-|------|---------|
-| 电脑重启后怎么进入 Apollo | `cd application-pnc` → `aem enter`，无需重新安装或 aem start |
-| DreamView 怎么打开 | `aem bootstrap start --plus`，浏览器访问 `http://localhost:8888` |
-| buildtool 编译要执行几次 | 建议执行两次 `buildtool build -p core`，第一次下载依赖，第二次确保完整 |
+- 脚本：`apollo-env/scripts/clean_apollo_storage.sh`；分发器命令：`clean`。
+- 清理范围：`/apollo_workspace/data/` 下 `record`、`records`、`core` 目录内容 + `log` 里非 `.INFO` 结尾的日志（保留 `.INFO`）。只动 data/，有越界校验。
+- **安全流程（务必照做）**：先 `apollo_ops_expert` 跑 `clean --dry-run` 预览将删条目数/占用，向用户复述并确认后，再跑 `clean --yes` 执行。不得跳过预览直接 `--yes`。
+- 这是清**磁盘存储**，不是内存；如果用户把它叫「清理内存」，提醒一下实际清的是录包/日志/core。
 
----
+## 使用方式
 
-## 速查卡片：buildtool 编译报错速查
+- 用户说「恢复 ARCF_40P」→ 路由到 apollo-vehicle-restore
+- 用户说「配置基站」→ 路由到 apollo-gnss-config
+- 用户说「配置雷达」→ 路由到 apollo-lidar-config
+- 用户说「配置相机」→ 路由到 apollo-camera-config
+- 用户说「HQEV 怎么解锁」→ 路由到 apollo-vehicle-usage
+- 用户说「检查环境」→ 路由到 apollo-env-check
+- 用户说「安装 Apollo」→ 路由到 apollo-install
 
-> 来源：https://apollo.baidu.com/community/article/1160
+## 保留的通用资源
 
-| 报错关键词 | 原因 | 修复 |
-|-----------|------|------|
-| `Cannot find WORKSPACE` / `Different packages have a same name` | 容器内 `/apollo_workspace` 目录无效或未在正确路径执行 | `exit` → `aem remove` → 重新 `aem start` → `aem enter` → 在 `/apollo_workspace` 下执行 |
-| `Error downloading`（Bazel 下载依赖失败） | 网络问题 | 方案 A：换网络（手机热点）重试；方案 B：使用离线缓存（见下） |
-| 编译耗时过长 / 首次编译太慢 | 没有使用预编译缓存 | 使用离线缓存（见下） |
-| `-luuid` 链接错误 | 旧版镜像缺少 uuid 依赖 | `sudo apt install uuid-dev && sudo ldconfig` 或更新镜像 `exit` → `aem start -f` |
-| Bazel 缓存过期 `install/cbf972...` | .cache 中 bazel install 目录过期 | `rm -rf /apollo_workspace/.cache/bazel/install/cbf972...` → 重新 `buildtool build` |
+| 文件 | 作用 |
+|---|---|
+| `plugins.yaml` | **插件注册表**：子 skill 清单 + 命令路由，`apollo-env.sh` 读它动态分发 |
+| `scripts/apollo-env.sh` | 统一命令转发器（读 plugins.yaml 动态路由，不硬编码子 skill 路径） |
+| `references/knowledge_index.md` | 知识库总索引 |
+| `references/usage_examples.md` | 命令使用示例 |
 
-**离线编译缓存（解决下载失败和编译慢）：**
-```bash
-aem enter
-cd /apollo_workspace/
-wget https://apollo-system.cdn.bcebos.com/bazel_deps/cache.tar.gz
-rm -rf .cache
-tar -xzvf cache.tar.gz
-buildtool build -p core
-```
+## 插件机制（加新子 skill 只改注册表）
 
----
-
-## 流程 B：重启后快速进入
-
-> 适用：Apollo 已安装完成，电脑重启后重新进入开发环境。
-
-```bash
-cd application-pnc
-aem enter
-```
-
-无需重新执行 `aem start`、`bash setup.sh` 或 `buildtool build`。
-进入容器后如需启动 DreamView：`aem bootstrap start --plus`
-
----
-
-## 流程 A：安装引导
-
-### Step 1：环境检测
-
-```bash
-bash {BASE_DIR}/scripts/env_check.sh
-```
-
-脚本退出码：**0**=全部通过，**1**=存在警告，**2**=存在失败项。
-
-支持 `--json` 输出：
-```bash
-bash {BASE_DIR}/scripts/env_check.sh --json
-```
-
-检测结果标注：
-- ✅ 通过 — 已满足
-- ⚠️ 警告 — 非推荐但可继续
-- ❌ 失败 — 必须安装才能继续
-
-如果是 `/apollo-env check` 触发，到此结束。
-
-### Step 2：安装 Docker
-
-```bash
-wget http://apollo-pkg-beta.bj.bcebos.com/docker_install.sh
-bash docker_install.sh
-```
-
-网络失败时使用阿里云镜像：
-```bash
-wget http://apollo-pkg-beta.bj.bcebos.com/get_docker.sh
-bash get_docker.sh --mirror Aliyun
-```
-
-### Step 3：安装 aem
-
-```bash
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://apollo-pkg-beta.cdn.bcebos.com/neo/beta/key/deb.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/apolloauto.gpg
-sudo chmod a+r /etc/apt/keyrings/apolloauto.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/apolloauto.gpg] https://apollo-pkg-beta.cdn.bcebos.com/apollo/core $(. /etc/os-release && echo "$VERSION_CODENAME") main" | sudo tee /etc/apt/sources.list.d/apolloauto.list
-sudo apt-get update && sudo apt install apollo-neo-env-manager-dev --reinstall
-```
-
-验证：`aem -h`
-
-### Step 4：克隆赛事工程
-
-```bash
-git clone https://github.com/ApolloAuto/application-pnc.git
-```
-
-GitHub 不可达时使用 Gitee：
-```bash
-git clone https://gitee.com/ApolloAuto/application-pnc
-```
-
-**无论通过哪个源克隆，都必须执行 setup.sh（它会自动识别 CPU 架构 amd64 / arm64，并写入 .workspace.json）：**
-```bash
-cd application-pnc
-bash setup.sh
-```
-
-验证：
-```bash
-cat .workspace.json   # 应包含正确的 arch 字段
-```
-
-### Step 5：启动环境并构建
-
-```bash
-aem start
-aem enter
-buildtool build -p core
-buildtool build -p core   # 执行两次确保完整
-```
-
-### Step 6：验证
-
-```bash
-aem bootstrap start --plus
-# 浏览器访问 http://localhost:8888
-```
-
-### Step 7（可选）：赛事场景插件下载
-
-见知识库 `{BASE_DIR}/references/knowledge/02_安装部署/04_赛事场景插件下载指南.md`。
-
-### Step 6：故障诊断（`/apollo-env diagnose`）
-
-1. 运行 env_check.sh 获取当前状态
-2. 在知识库 `07_FAQ故障排查/` 中检索匹配错误
-3. 详细诊断表见 `02_安装部署/00_安装总览.md`
-
-所有涉及 `sudo` 的命令，必须展示给用户确认后再执行。
-
----
-
-## 知识库检索
-
-当快答未命中时，按如下方式检索：
-
-| 问题类型 | 优先目录 |
-|---------|---------|
-| 安装流程、Docker、aem | `02_安装部署/`（入口：`00_安装总览.md`）|
-| buildtool build -p core 报错 | `07_FAQ故障排查/buildtool build -p core 报错指南.md` |
-| Docker 安装失败 | `07_FAQ故障排查/Docker无法安装解决方案.md`、`安装及编译问题FAQ--docker.md` |
-| aem 相关问题 | `07_FAQ故障排查/安装及编译问题FAQ--aem 工具、Apollo下载和Apollo启动相关.md` |
-| 克隆工程失败 | `07_FAQ故障排查/安装及编译问题FAQ--拉取工程目录.md` |
-| 编译缓存 | `02_安装部署/03_赛事编译缓存.md` |
-| Profile 插件 | `02_安装部署/04_赛事场景插件下载指南.md` |
-
----
-
-## 重要约束
-
-- **sudo 操作必须确认**：所有 `sudo` 命令展示后用户确认才执行
-- **macOS 不操作**：检测到 macOS 时仅提示在 Ubuntu 上操作，不执行任何安装命令
-- **不跳过步骤**：严格按顺序执行，不跳过环境检测
-- **幂等性**：每步执行前先检测是否已完成，已安装的自动跳过
-- **PnC 专注**：不涉及感知（Perception）、定位（Localization）等上游模块，不需要 GPU
-
-## 文件结构
-
-```
-apollo-env/
-├── _meta.json
-├── config.yaml
-├── SKILL.md
-├── README.md
-├── scripts/
-│   └── env_check.sh
-└── references/
-    ├── knowledge_index.md
-    └── knowledge/
-        ├── 02_安装部署/    # 11 个文件（安装全流程）
-        └── 07_FAQ故障排查/ # 6 个文件（安装相关）
-```
+1. 新建子 skill 目录（SKILL.md + 脚本），放在 ``modules/` 目录 下；
+2. 在 `plugins.yaml` 的 `skills` 加一行、`routes` 加命令映射（`run: scripts/xxx.sh` 或 `builtin: 函数名`）；
+3. `apollo-env.sh` 自动按注册表分发，**主程序零改动**。

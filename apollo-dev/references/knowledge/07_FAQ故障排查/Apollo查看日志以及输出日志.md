@@ -15,16 +15,16 @@
 > 场景名称：Traffic light scene
 > 场景  ID：Sunnyvale_3
 
-![](../images/07_FAQ故障排查/ec62ee169155b36510b97c0eb246759d.png)
+[](../images/07_FAQ故障排查/ec62ee169155b36510b97c0eb246759d.png)
 
-首先，让我们让主车在该场景下运行。在Apollo工程的目录路径下，例如赛事版本，你可以在以下路径找到刚刚生成的运行日志。这个日志是在默认情况下（没有进行任何修改）所生成的。
+首先，让我们让主车在该场景下运行。在Apollo工程的目录路径下，例如EDU 版本，你可以在以下路径找到刚刚生成的运行日志。这个日志是在默认情况下（没有进行任何修改）所生成的。
 
 在Apollo工程目录路径下，你可以找到日志的路径，例如：
 
-## 以赛事版本planning为例：
+## 以EDU 版本planning为例：
 
 `pnc-competition/data/log/planning.log.INFO.时间`
-![](../images/07_FAQ故障排查/ef4f1b05bbf8c9ce247c184e0af3f2b2.png)
+[](../images/07_FAQ故障排查/ef4f1b05bbf8c9ce247c184e0af3f2b2.png)
 
 在指定的路径下，我们可以看到有很多日志文件，但是你可能不确定应该查看哪一个。在这里，我们以planning为例进行说明：
 
@@ -43,7 +43,7 @@
 
 ## 日志包大致内容如下：
 
-![](../images/07_FAQ故障排查/3f21d72fa80cd16f6d064fbf56142d96.png)
+[](../images/07_FAQ故障排查/3f21d72fa80cd16f6d064fbf56142d96.png)
 
 ## 日志分析：
 
@@ -55,7 +55,7 @@ I0114 11:36:22.108013  3646 scenario.cc:90] switch stage from TRAFFIC_LIGHT_PROT
 
 **scenario.cc：99 ：**该文件下第90行输出的日志
 
-![](../images/07_FAQ故障排查/a3f190d4a2d5045a3d0a1e60fca184f4.png)
+[](../images/07_FAQ故障排查/a3f190d4a2d5045a3d0a1e60fca184f4.png)
 
 是的，细心的小伙伴可能会注意到日志中的"AINFO"语句。这些语句是Apollo输出日志中的一部分，用于在运行时输出函数的执行情况以及一些变量的值。
 
@@ -77,7 +77,7 @@ I0114 11:36:22.108013  3646 scenario.cc:90] switch stage from TRAFFIC_LIGHT_PROT
 
 通过代码和Dreamview的PNC Monitor，我们可以更深入地了解Apollo在红绿灯场景中的运行阶段和行为变化，以便进行调试和分析。
 
-![](../images/07_FAQ故障排查/760fcbc85658f78a906d9ba55028bcae.png)
+[](../images/07_FAQ故障排查/760fcbc85658f78a906d9ba55028bcae.png)
 
 # 日志书写：
 
@@ -91,13 +91,13 @@ I0114 11:36:22.108013  3646 scenario.cc:90] switch stage from TRAFFIC_LIGHT_PROT
 
 ### 找到该场景的代码文件夹：
 
-![](../images/07_FAQ故障排查/7d5a3d8633470079e378653120c92ef7.png)
+[](../images/07_FAQ故障排查/7d5a3d8633470079e378653120c92ef7.png)
 
 我们这里以stage_approach.cc，代码为例：
 
 我们可以发现在该文件下有许多ADEBUG的语句：
 
-![](../images/07_FAQ故障排查/6ddea872712d5693f956c233e255a19a.png)
+[](../images/07_FAQ故障排查/6ddea872712d5693f956c233e255a19a.png)
 
 有了﻿ADEBUG﻿后，各位小伙伴可以通过该语句改写输出日志。具体步骤如下：
 
@@ -117,21 +117,21 @@ I0114 11:36:22.108013  3646 scenario.cc:90] switch stage from TRAFFIC_LIGHT_PROT
 
 通过将﻿ADEBUG﻿改为﻿AINFO﻿，我们将输出日志级别从调试级别改为信息级别。这样修改后的日志将更具可读性，方便我们观察和分析。请按照以上步骤进行操作，并在重新运行后观察修改后的日志输出。
 
-![](../images/07_FAQ故障排查/317a8cfb7c8ccb2f51775460674fd5eb.png)
+[](../images/07_FAQ故障排查/317a8cfb7c8ccb2f51775460674fd5eb.png)
 
 ### 修改完之后的日志：
 
-![](../images/07_FAQ故障排查/874af6ad2cf212797d54380067efc528.png)
+[](../images/07_FAQ故障排查/874af6ad2cf212797d54380067efc528.png)
 
 ## 自己书写AINFO：
 
 通过自己书写AINFO 的方式可以判断在车辆在运行时是否运用到该函数，或者通过写AINFO 的方式查看变量的实时值。添加完成后需要编译代码，具体书写方式如下：
 
-![](../images/07_FAQ故障排查/0d83889fea8bf424decf9c43fd1e7652.png)
+[](../images/07_FAQ故障排查/0d83889fea8bf424decf9c43fd1e7652.png)
 
 ### 重新运行该场景，生成日志如下：
 
-![](../images/07_FAQ故障排查/686e49974fa4d258fe5b880c5bcc42c7.png)
+[](../images/07_FAQ故障排查/686e49974fa4d258fe5b880c5bcc42c7.png)
 
 我们可以从日志中可以看出，当TRAFFIC_LIGHT_PROTECTED_APPROACH阶段完成时，会进入：
 
@@ -143,4 +143,4 @@ Stage::StageStatus TrafficLightProtectedStageApproach::FinishStage() {}
 函数，当运行至该函数时，此时AINFO 会输出日志，而next_stage_，这个变量则为我们场景的下一个阶段，401为TRAFFIC_LIGHT_PROTECTED_INTERSECTION_CRUISE阶段：
 
 
-![](../images/07_FAQ故障排查/d4f810c989390f01186c1bd65db2ca19.png)
+[](../images/07_FAQ故障排查/d4f810c989390f01186c1bd65db2ca19.png)

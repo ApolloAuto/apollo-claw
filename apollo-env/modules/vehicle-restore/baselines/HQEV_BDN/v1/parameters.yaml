@@ -1,0 +1,63 @@
+schema_version: 1
+target_id: HQEV_BDN
+baseline_id: HQEV_BDN_parameters_v1
+status: verified_by_user
+platform: apollo
+apollo_version: "9.1.1"
+workspace: /apollo_workspace
+profile_package: HQEV_BDN
+profile_current: /apollo_workspace/profiles/current
+expected_current_target: /apollo_workspace/profiles/HQEV_BDN
+temporary_profile: sample
+runtime:
+  # environment_name 由镜像和启动方式决定，同一车型可能不同，仅供参考，不作为身份判据
+  environment_name: edu_9.1.1-HQEV
+  environment_name_authoritative: false
+  worklocal: true
+  container_repository: registry.baidubce.com/apollo/apollo-env-gpu
+  container_tag: "9.0-latest"
+identity:
+  # 恢复前的身份判定只依据下列信号，不依据 runtime.environment_name
+  authoritative:
+    profile_package: HQEV_BDN
+    profile_current_target: /apollo_workspace/profiles/HQEV_BDN
+    apollo_version: "9.1.1"
+  non_authoritative:
+    - runtime.environment_name
+    - runtime.container_tag
+  stamp:
+    # 指纹文件在参数目录内，随归档打包和恢复，profile 切换不影响它
+    path: /apollo_workspace/profiles/HQEV_BDN/.apollo_vehicle_stamp.yaml
+    relative_path: .apollo_vehicle_stamp.yaml
+    content_hash: 36213f244a90f65835a00ff047b447e63323acff70a6a50777cc1df4383e72b4
+    verify_command: bash scripts/vehicle_stamp.sh verify --target HQEV_BDN --workspace /apollo_workspace
+    exit_codes:
+      0: 身份与内容均一致
+      3: 身份不匹配，必须停止
+      4: 身份一致但参数内容漂移，报告不阻断
+workspace_manifest:
+  path: /apollo_workspace/.workspace.json
+  sha256: 00b157cd77fcb9932760fbd57771831a7cd3fb12c83e52b49c0868a6a5bd4b29
+artifact:
+  path: baselines/HQEV_BDN/apollo_profiles.tar.gz
+  sha256: e8f5216c6be56b681352de3abcac6bb551fa68dca1d820e4e9f3dba2e2c49b63
+  archive_root: profiles/HQEV_BDN
+  file_count: 457
+  directory_count: 332
+  recorded_at: "2026-09-09"
+source:
+  path: /apollo_workspace/profiles/HQEV_BDN
+  note: User-provided healthy HQEV_BDN parameter directory; do not overwrite during baseline creation.
+restore:
+  workspace_required: /apollo_workspace
+  switch_to_temporary_profile: true
+  temporary_profile_command: aem profile use sample
+  temporary_switch_nonzero_is_tolerated: true
+  temporary_switch_postcheck_required: true
+  restore_into_profile_directory: true
+  restore_via_current_link: false
+  switch_back_command: aem profile use HQEV_BDN
+  final_current_check_required: true
+protected_paths:
+  - /apollo_workspace/profiles/current
+  - /apollo_workspace/profiles/sample

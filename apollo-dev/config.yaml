@@ -1,4 +1,4 @@
-# Apollo EDU 赛事环境配置
+# Apollo EDU 环境配置
 # 单一事实来源：版本要求和 URL 配置
 # env_check.sh 和文档均引用此文件
 
@@ -32,7 +32,7 @@ dreamview_port: "8888"
 # 构建命令
 build_cmd: "buildtool build -p core"
 
-# 赛事工程（固定为 PnC）
+# EDU 工程（固定为 PnC）
 example_projects: "application-pnc"
 
 # GPG keys and URLs
@@ -40,7 +40,7 @@ apollo_gpg_url: "https://apollo-pkg-beta.cdn.bcebos.com/neo/beta/key/deb.gpg.key
 apollo_gpg_keyring: "/etc/apt/keyrings/apolloauto.gpg"
 apollo_apt_list: "/etc/apt/sources.list.d/apolloauto.list"
 
-# 赛事编译缓存
+# EDU 编译缓存
 cache_url: "https://apollo-system.bj.bcebos.com/bazel_deps/cache.tar.gz"
 planning_cache_url: "https://apollo-pkg-beta.bj.bcebos.com/archive/planning_cache.tar.gz"
 

@@ -1,0 +1,718 @@
+schema_version: 1
+common_linked_files:
+  pointcloud_channel:
+  - path: /apollo/modules/perception/pointcloud_preprocess/dag/pointcloud_preprocess.dag
+    field: readers.channel
+    risk: low
+    desc: 感知预处理订阅
+  - path: /apollo/modules/loam_velodyne/conf/laser_odometry_conf.pb.txt
+    field: pointCloudTopic
+    risk: low
+    desc: 激光里程计订阅
+  - path: /apollo/modules/slam_local/conf/laser_odometry_conf.pb.txt
+    field: pointCloudTopic
+    risk: low
+    desc: SLAM 定位订阅
+  - path: /apollo/modules/localization/conf/msf_localization.pb.txt
+    field: lidar_topic
+    risk: low
+    desc: MSF 定位订阅
+  - path: /apollo/modules/drivers/lidar/dag/lidar.dag
+    field: readers.channel
+    risk: low
+    desc: 补偿器订阅
+  - path: /apollo/modules/dreamview_plus_plugins/calibration_tool/conf/calibration_conf.pb.txt
+    field: lidar_channel
+    risk: high
+    desc: 标定工具（多处）
+  - path: /apollo/modules/private_tools/tile_map_images_creator/conf/image_creator_conf.pb.txt
+    field: point_cloud_channel
+    risk: low
+    desc: 地图图像工具
+  frame_id:
+  - path: /apollo/modules/transform/conf/static_transform_conf.pb.txt
+    field: child_frame_id
+    risk: high
+    desc: TF 静态外参（imu→lidar）
+  - path: /apollo/modules/perception/data/params/lidar16_back_extrinsics.yaml
+    field: child_frame_id
+    risk: high
+    desc: 雷达外参文件（文件名可能需同步改）
+  - path: /apollo/modules/perception/data/conf/sensor_meta.pb.txt
+    field: name
+    risk: high
+    desc: 感知传感器元数据
+  - path: /apollo/modules/perception/multi_sensor_fusion/data/dst_type_fusion.pb.txt
+    field: name
+    risk: high
+    desc: 感知融合
+  - path: /apollo/modules/perception/pointcloud_preprocess/conf/pointcloud_preprocess_config.pb.txt
+    field: sensor_name
+    risk: high
+    desc: 感知预处理传感器名
+  - path: /apollo/modules/loam_velodyne/conf/laser_odometry_conf.pb.txt
+    field: lidarFrame
+    risk: low
+    desc: 激光里程计 frame
+  - path: /apollo/modules/dreamview_plus_plugins/calibration_tool/conf/calibration_conf.pb.txt
+    field: lidar_frame_id
+    risk: high
+    desc: 标定工具 frame
+lidars:
+- model: HESAI40P
+  vendor: hesai
+  driver_conf: /apollo/modules/drivers/lidar/hesai/conf/hesai40p.pb.txt
+  compensator_conf: /apollo/modules/drivers/lidar/hesai/conf/hesai40p_compensator.pb.txt
+  dag: /apollo/modules/drivers/lidar/hesai/dag/hesai40.dag
+  launch: /apollo/modules/drivers/lidar/hesai/launch/hesai40.launch
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: HESAI40P
+    interactive: true
+    choices: &id001
+    - HESAI40P
+    - HESAI64
+    desc: 雷达型号
+    model_configs:
+      HESAI40P: &id002 {}
+      HESAI64: &id003 {}
+  - concept: device_ip
+    field: ip
+    location: top
+    default: 192.168.20.13
+    interactive: true
+    desc: 雷达设备 IP
+  - concept: data_port
+    field: lidar_recv_port
+    location: top
+    default: 2368
+    interactive: true
+    desc: 点云端口
+  - concept: aux_port
+    field: gps_recv_port
+    location: top
+    default: 8308
+    interactive: true
+    desc: GPS/PPS 端口
+  - concept: frame_id
+    field: frame_id
+    location: top
+    default: lidar16_back
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: pointcloud_channel
+    location: top
+    default: /apollo/sensor/hesai40/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: top
+    default: /apollo/sensor/hesai40/Scan
+    interactive: true
+    desc: 扫描 channel
+- model: HESAI64
+  vendor: hesai
+  driver_conf: /apollo/modules/drivers/lidar/hesai/conf/hesai64.pb.txt
+  compensator_conf: /apollo/modules/drivers/lidar/hesai/conf/hesai64_compensator.pb.txt
+  dag: /apollo/modules/drivers/lidar/hesai/dag/hesai64.dag
+  launch: /apollo/modules/drivers/lidar/hesai/launch/hesai64.launch
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: HESAI64
+    interactive: true
+    choices: *id001
+    desc: 雷达型号
+    model_configs:
+      HESAI40P: *id002
+      HESAI64: *id003
+  - concept: device_ip
+    field: ip
+    location: top
+    default: 192.168.20.13
+    interactive: true
+    desc: 雷达设备 IP
+  - concept: data_port
+    field: lidar_recv_port
+    location: top
+    default: 2368
+    interactive: true
+    desc: 点云端口
+  - concept: aux_port
+    field: gps_recv_port
+    location: top
+    default: 10110
+    interactive: true
+    desc: GPS/PPS 端口
+  - concept: frame_id
+    field: frame_id
+    location: top
+    default: hesai64
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: pointcloud_channel
+    location: top
+    default: /apollo/sensor/hesai64/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: top
+    default: /apollo/sensor/hesai64/Scan
+    interactive: true
+    desc: 扫描 channel
+- model: AT128
+  vendor: hslidar
+  driver_conf: /apollo/modules/drivers/lidar/hslidar/conf/hslidar.pb.txt
+  fields:
+  - concept: model
+    field: lidar_type
+    location: top
+    default: AT128
+    interactive: true
+    choices:
+    - AT128
+    - Pandar40P
+    - Pandar64
+    - PandarXT
+    - PandarQT
+    - PandarFT120
+    desc: 雷达型号
+    model_configs:
+      AT128:
+        correction_file_path: /apollo/modules/drivers/lidar/hslidar/correction/angle_correction/AT128_test_angle_correction.dat
+        firetimes_path: /apollo/modules/drivers/lidar/hslidar/correction/firetime_correction/AT128_test_firetime_correction.dat
+      Pandar40P:
+        correction_file_path: /apollo/modules/drivers/lidar/hslidar/correction/angle_correction/Pandar40P_Angle_Correction_File.csv
+        firetimes_path: /apollo/modules/drivers/lidar/hslidar/correction/firetime_correction/Pandar40P_Firetime_Correction_File.csv
+      Pandar64:
+        correction_file_path: /apollo/modules/drivers/lidar/hslidar/correction/angle_correction/Pandar64_Angle_Correction_File.csv
+        firetimes_path: /apollo/modules/drivers/lidar/hslidar/correction/firetime_correction/Pandar64_Firetime_Correction_File.csv
+      PandarXT:
+        correction_file_path: /apollo/modules/drivers/lidar/hslidar/correction/angle_correction/PandarXT_Angle_Correction_File.csv
+        firetimes_path: /apollo/modules/drivers/lidar/hslidar/correction/firetime_correction/PandarXT_Firetime_Correction_File.csv
+      PandarQT:
+        correction_file_path: /apollo/modules/drivers/lidar/hslidar/correction/angle_correction/PandarQT_Angle_Correction_File.csv
+      PandarFT120:
+        correction_file_path: /apollo/modules/drivers/lidar/hslidar/correction/angle_correction/FT120C1X_Angle_Correction_File.dat
+  - concept: device_ip
+    field: device_ip
+    location: top
+    default: 192.168.1.12
+    interactive: true
+    desc: 雷达设备 IP
+  - concept: host_ip
+    field: host_ip
+    location: top
+    default: 0.0.0.0
+    interactive: true
+    desc: 本机 IP
+  - concept: data_port
+    field: udp_port
+    location: top
+    default: 2368
+    interactive: true
+    desc: 点云端口
+  - concept: aux_port
+    field: ptc_port
+    location: top
+    default: 9347
+    interactive: true
+    desc: PTC 端口
+  - concept: frame_id
+    field: frame_id
+    location: config_base
+    default: hesai_AT128
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: point_cloud_channel
+    location: config_base
+    default: /apollo/sensor/hesaiAT128/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: config_base
+    default: /apollo/sensor/hesaiAT128/Scan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/hslidar/dag/hslidar.dag
+- model: VLP16
+  vendor: velodyne
+  driver_conf: /apollo/modules/drivers/lidar/velodyne/conf/velodyne16_front_center_conf.pb.txt
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: VLP16
+    interactive: true
+    choices: &id004
+    - VLP16
+    - VLP32
+    - HDL64E
+    - VLS128
+    desc: 雷达型号
+    model_configs:
+      VLP16: &id005
+        calibration_file: /apollo/modules/drivers/lidar/velodyne/params/VLP16_calibration.yaml
+      VLP32: &id006
+        calibration_file: /apollo/modules/drivers/lidar/velodyne/params/VLP32C_calibration_example.yaml
+      HDL64E: &id007
+        calibration_file: /apollo/modules/drivers/lidar/velodyne/params/64E_S3_calibration_example.yaml
+      VLS128: &id008
+        calibration_file: /apollo/modules/drivers/lidar/velodyne/params/velodyne128_VLS_calibration.yaml
+  - concept: data_port
+    field: firing_data_port
+    location: top
+    default: 2370
+    interactive: true
+    desc: 数据端口
+  - concept: aux_port
+    field: positioning_data_port
+    location: top
+    default: 8310
+    interactive: true
+    desc: 位置端口
+  - concept: frame_id
+    field: frame_id
+    location: top
+    default: velodyne16_front_center
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: convert_channel_name
+    location: top
+    default: /apollo/sensor/lidar16/front/center/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: top
+    default: /apollo/sensor/lidar16/front/center/Scan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/velodyne/dag/velodyne16.dag
+- model: HDL64E_S3D
+  vendor: velodyne
+  driver_conf: /apollo/modules/drivers/lidar/velodyne/conf/velodyne64_conf.pb.txt
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: HDL64E_S3D
+    interactive: true
+    choices: *id004
+    desc: 雷达型号
+    model_configs:
+      VLP16: *id005
+      VLP32: *id006
+      HDL64E: *id007
+      VLS128: *id008
+  - concept: data_port
+    field: firing_data_port
+    location: top
+    default: 2368
+    interactive: true
+    desc: 数据端口
+  - concept: frame_id
+    field: frame_id
+    location: top
+    default: velodyne64
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: convert_channel_name
+    location: top
+    default: /apollo/sensor/velodyne64/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: top
+    default: /apollo/sensor/velodyne64/VelodyneScan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/velodyne/dag/velodyne64.dag
+- model: VLS128
+  vendor: velodyne
+  driver_conf: /apollo/modules/drivers/lidar/velodyne/conf/velodyne128_conf.pb.txt
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: VLS128
+    interactive: true
+    choices: *id004
+    desc: 雷达型号
+    model_configs:
+      VLP16: *id005
+      VLP32: *id006
+      HDL64E: *id007
+      VLS128: *id008
+  - concept: data_port
+    field: firing_data_port
+    location: top
+    default: 2368
+    interactive: true
+    desc: 数据端口
+  - concept: aux_port
+    field: positioning_data_port
+    location: top
+    default: 8308
+    interactive: true
+    desc: 位置端口
+  - concept: frame_id
+    field: frame_id
+    location: top
+    default: velodyne128
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: convert_channel_name
+    location: top
+    default: /apollo/sensor/lidar128/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: top
+    default: /apollo/sensor/lidar128/Scan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/velodyne/dag/velodyne128.dag
+- model: Livox
+  vendor: livox
+  driver_conf: /apollo/modules/drivers/lidar/livox/conf/livox.pb.txt
+  fields:
+  - concept: device_ip
+    field: lidar_ip
+    location: top
+    default: 192.168.10.238
+    interactive: true
+    desc: 雷达设备 IP
+  - concept: frame_id
+    field: frame_id
+    location: config_base
+    default: livox
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: point_cloud_channel
+    location: config_base
+    default: /apollo/sensor/livox/up/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: config_base
+    default: /apollo/sensor/livox/up/Scan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/livox/dag/livox.dag
+- model: LSLIDAR_CH16
+  vendor: lslidar
+  driver_conf: /apollo/modules/drivers/lidar/lslidar/conf/lslidarCH16_conf.pb.txt
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: LSLIDAR_CH16
+    interactive: true
+    choices: &id009
+    - LSLIDAR_CH16
+    - LSLIDAR_CH32
+    - LSLIDAR_CH64
+    - LSLIDAR_CH120
+    - LSLIDAR_CH128
+    - LSLIDAR_LS128S2
+    desc: 雷达型号
+    model_configs:
+      LSLIDAR_CH16: &id010
+        calibration_file: /apollo/modules/drivers/lidar/lslidar/params/LSCH16_calibration.yaml
+      LSLIDAR_CH32: &id011
+        calibration_file: /apollo/modules/drivers/lidar/lslidar/params/LSCH32_calibration.yaml
+      LSLIDAR_CH64: &id012
+        calibration_file: /apollo/modules/drivers/lidar/lslidar/params/LSCH64_calibration.yaml
+      LSLIDAR_CH120: &id013
+        calibration_file: /apollo/modules/drivers/lidar/lslidar/params/LSCH120_calibration.yaml
+      LSLIDAR_CH128: &id014
+        calibration_file: /apollo/modules/drivers/lidar/lslidar/params/LSCH128_calibration.yaml
+      LSLIDAR_LS128S2: {}
+  - concept: device_ip
+    field: device_ip
+    location: top
+    default: 192.168.1.200
+    interactive: true
+    desc: 雷达设备 IP
+  - concept: data_port
+    field: msop_port
+    location: top
+    default: 2368
+    interactive: true
+    desc: MSOP 端口
+  - concept: aux_port
+    field: difop_port
+    location: top
+    default: 2369
+    interactive: true
+    desc: DIFOP 端口
+  - concept: host_ip
+    field: group_ip
+    location: top
+    default: 224.1.1.2
+    interactive: true
+    desc: 组播 IP
+  - concept: frame_id
+    field: frame_id
+    location: config_base
+    default: lslidarCH16
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: point_cloud_channel
+    location: config_base
+    default: /apollo/sensor/lslidarCH16/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: config_base
+    default: /apollo/sensor/lslidarCH16/Scan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/lslidar/dag/lslidar.dag
+- model: LSLIDAR_CH32
+  vendor: lslidar
+  driver_conf: /apollo/modules/drivers/lidar/lslidar/conf/lslidarCH32_conf.pb.txt
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: LSLIDAR_CH32
+    interactive: true
+    choices: *id009
+    desc: 雷达型号
+    model_configs:
+      LSLIDAR_CH16: *id010
+      LSLIDAR_CH32: *id011
+      LSLIDAR_CH64: *id012
+      LSLIDAR_CH120: *id013
+      LSLIDAR_CH128: *id014
+      LSLIDAR_LS128S2: {}
+  - concept: device_ip
+    field: device_ip
+    location: top
+    default: 192.168.1.200
+    interactive: true
+    desc: 雷达设备 IP
+  - concept: data_port
+    field: msop_port
+    location: top
+    default: 2368
+    interactive: true
+    desc: MSOP 端口
+  - concept: aux_port
+    field: difop_port
+    location: top
+    default: 2369
+    interactive: true
+    desc: DIFOP 端口
+  - concept: frame_id
+    field: frame_id
+    location: config_base
+    default: lslidarCH32
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: point_cloud_channel
+    location: config_base
+    default: /apollo/sensor/lslidarCH32/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: config_base
+    default: /apollo/sensor/lslidarCH32/Scan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/lslidar/dag/lslidar.dag
+- model: LSLIDAR_CH128
+  vendor: lslidar
+  driver_conf: /apollo/modules/drivers/lidar/lslidar/conf/lslidarCH128_conf.pb.txt
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: LSLIDAR_CH128
+    interactive: true
+    choices: *id009
+    desc: 雷达型号
+    model_configs:
+      LSLIDAR_CH16: *id010
+      LSLIDAR_CH32: *id011
+      LSLIDAR_CH64: *id012
+      LSLIDAR_CH120: *id013
+      LSLIDAR_CH128: *id014
+      LSLIDAR_LS128S2: {}
+  - concept: device_ip
+    field: device_ip
+    location: top
+    default: 192.168.1.102
+    interactive: true
+    desc: 雷达设备 IP
+  - concept: data_port
+    field: msop_port
+    location: top
+    default: 2368
+    interactive: true
+    desc: MSOP 端口
+  - concept: aux_port
+    field: difop_port
+    location: top
+    default: 2369
+    interactive: true
+    desc: DIFOP 端口
+  - concept: frame_id
+    field: frame_id
+    location: config_base
+    default: lslidarCH128
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: point_cloud_channel
+    location: config_base
+    default: /apollo/sensor/lslidarCH128/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: config_base
+    default: /apollo/sensor/lslidarCH128/Scan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/lslidar/dag/lslidar.dag
+- model: RS16
+  vendor: rslidar
+  driver_conf: /apollo/modules/drivers/lidar/rslidar/conf/rslidar.pb.txt
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: RS16
+    interactive: true
+    choices:
+    - RS16
+    - RS32
+    - RS80
+    - RS128
+    desc: 雷达型号
+    model_configs:
+      RS16: {}
+      RS32: {}
+      RS80: {}
+      RS128: {}
+  - concept: device_ip
+    field: ip
+    location: top
+    default: 192.168.2.200
+    interactive: true
+    desc: 雷达设备 IP
+  - concept: data_port
+    field: msop_port
+    location: top
+    default: 6699
+    interactive: true
+    desc: MSOP 端口
+  - concept: aux_port
+    field: difop_port
+    location: top
+    default: 7788
+    interactive: true
+    desc: DIFOP 端口
+  - concept: frame_id
+    field: frame_id
+    location: config_base
+    default: rslidar_up
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: point_cloud_channel
+    location: config_base
+    default: /apollo/sensor/rslidar/up/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: config_base
+    default: /apollo/sensor/rslidar/up/Scan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/rslidar/dag/rslidar.dag
+- model: vanjee_720_16
+  vendor: vanjeelidar
+  driver_conf: /apollo/modules/drivers/lidar/vanjeelidar/conf/vanjeelidar.pb.txt
+  fields:
+  - concept: model
+    field: model
+    location: top
+    default: vanjee_720_16
+    interactive: true
+    choices:
+    - vanjee_720_16
+    - vanjee_720_32
+    desc: 雷达型号
+    model_configs:
+      vanjee_720_16:
+        angle_path: /usr/local/include/vanjee_driver/param/Vanjee_720_16_VA.csv
+      vanjee_720_32:
+        angle_path: /usr/local/include/vanjee_driver/param/Vanjee_720_32_VA.csv
+  - concept: device_ip
+    field: lidar_address
+    location: top
+    default: 192.168.2.86
+    interactive: true
+    desc: 雷达设备 IP
+  - concept: host_ip
+    field: host_address
+    location: top
+    default: 192.168.2.88
+    interactive: true
+    desc: 本机 IP
+  - concept: data_port
+    field: host_msop_port
+    location: top
+    default: 3001
+    interactive: true
+    desc: 本机 MSOP 端口
+  - concept: aux_port
+    field: lidar_msop_port
+    location: top
+    default: 3333
+    interactive: true
+    desc: 雷达 MSOP 端口
+  - concept: frame_id
+    field: frame_id
+    location: config_base
+    default: vanjeelidar_up
+    interactive: true
+    desc: TF 帧 ID
+  - concept: pointcloud
+    field: point_cloud_channel
+    location: config_base
+    default: /apollo/sensor/vanjeelidar/up/PointCloud2
+    interactive: true
+    desc: 点云 channel
+  - concept: scan
+    field: scan_channel
+    location: config_base
+    default: /apollo/sensor/vanjeelidar/up/Scan
+    interactive: true
+    desc: 扫描 channel
+  dag: /apollo/modules/drivers/lidar/vanjeelidar/dag/vanjeelidar.dag

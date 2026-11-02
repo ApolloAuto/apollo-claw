@@ -1,0 +1,45 @@
+# apollo-test-batch 配置
+#
+# 本 skill 只做"编排"：录包调 apollo-test，评分调 apollo-eval。
+# 这里的路径全部可在目标机上覆盖，不要写死到脚本里。
+
+# ── 数据与目录 ──────────────────────────────────────────────────────────────
+paths:
+  # 场景数据（apollo-eval 文档约定的那套）
+  metric_dir: /apollo_workspace/metric              # metric/<场景号>.json
+  scenario_input_dir: /apollo-simulator/input_data  # input_data/<场景号>.json
+  scenario_output_dir: /apollo-simulator/output_data # output_data/<场景号>/<场景号>.output.bag
+
+  # 测试产物
+  run_root: /apollo_workspace/data/test_runs        # 每轮一个 <tag>_<时间戳>/ 目录
+  record_root: /apollo_workspace/data/record/apollo_channels  # 录包落盘根目录
+
+# ── 仿真启动 ────────────────────────────────────────────────────────────────
+# command：用命令起仿真（批量、可自动）
+# manual ：人在 DreamView 点 SimControl，脚本等 bag 落盘
+# none   ：不起仿真，直接用已有 bag 评分
+sim:
+  mode: manual
+  # command 模式的模板，可用占位符：
+  #   {scenario} {scenario_json} {output_dir} {bag}
+  # 例：command: "bash /apollo_workspace/tools/run_sim.sh {scenario_json} {output_dir}"
+  command: ""
+  timeout_s: 900        # 单场景最长等待（秒）
+  bag_settle_s: 5       # manual 模式：bag 大小连续这么多秒不变即认为录完
+
+# ── 录包（调用 apollo-test 的脚本）──────────────────────────────────────────
+record:
+  enabled: true
+  profile: pnc          # pnc | vehicle | full（与 apollo-test 一致）
+  stop_grace_s: 5       # SIGINT 后等 cyber_recorder 收尾的时间
+
+# ── 评分（调用 apollo-eval 的评分引擎）──────────────────────────────────────
+eval:
+  interval: 0.1         # 传给 grading_system_py 的 --interval
+
+# ── skill 脚本定位 ──────────────────────────────────────────────────────────
+# 留空 = 自动从 ~/.dsh/skills 或同级目录推断。
+# 只有当 skill 装在非常规位置时才需要填。
+skills:
+  test_scripts: ""      # apollo-test/scripts 的绝对路径
+  eval_scripts: ""      # apollo-eval/scripts 的绝对路径

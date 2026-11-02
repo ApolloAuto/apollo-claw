@@ -1,0 +1,57 @@
+schema_version: 1
+target_id: HQEV_BDN
+baseline_id: HQEV_BDN_code_v1
+status: verified_by_user
+platform: apollo
+apollo_version: "9.1.1"
+workspace: /apollo_workspace
+source_root: /apollo_workspace/modules
+runtime:
+  # environment_name 由镜像和启动方式决定，同一车型可能不同，仅供参考，不作为身份判据
+  environment_name: edu_9.1.1-HQEV
+  environment_name_authoritative: false
+  worklocal: true
+  container_repository: registry.baidubce.com/apollo/apollo-env-gpu
+  container_tag: "9.0-latest"
+identity:
+  # 恢复前的身份判定只依据下列信号，不依据 runtime.environment_name
+  authoritative:
+    profile_package: HQEV_BDN
+    profile_current_target: /apollo_workspace/profiles/HQEV_BDN
+    apollo_version: "9.1.1"
+  non_authoritative:
+    - runtime.environment_name
+    - runtime.container_tag
+  stamp:
+    # 代码恢复前的身份判定复用参数目录内的指纹
+    path: /apollo_workspace/profiles/HQEV_BDN/.apollo_vehicle_stamp.yaml
+    content_hash: 36213f244a90f65835a00ff047b447e63323acff70a6a50777cc1df4383e72b4
+    verify_command: bash scripts/vehicle_stamp.sh verify --target HQEV_BDN --workspace /apollo_workspace
+workspace_manifest:
+  path: /apollo_workspace/.workspace.json
+  sha256: 00b157cd77fcb9932760fbd57771831a7cd3fb12c83e52b49c0868a6a5bd4b29
+artifact:
+  path: baselines/HQEV_BDN/apollo_code.tar.gz
+  sha256: f59014d2cd7620e31d1a3b1a895dc2ac8c14ae7d55d19762cd4f95ac369a247b
+  archive_root: modules
+  file_count: 672
+  directory_count: 161
+  recorded_at: "2026-09-09"
+source:
+  path: /apollo_workspace/modules
+  note: User-provided healthy HQEV_BDN vehicle code; later updates must create a new baseline version.
+restore:
+  workspace_required: /apollo_workspace
+  restore_root: /apollo_workspace/modules
+  build_workspace: /apollo_workspace
+  build_command: buildtool build -p <code_directory>
+  build_directories:
+    - modules
+  extra_current_files: preserve_and_report
+  missing_baseline_files: restore
+  changed_baseline_files: backup_then_restore
+  baseline_only_deletions: require_confirmation
+protected_paths:
+  - /apollo_workspace/.cache
+  - /apollo_workspace/profiles
+  - /apollo_workspace/data

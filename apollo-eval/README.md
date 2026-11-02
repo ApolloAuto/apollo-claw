@@ -1,6 +1,8 @@
-# apollo-eval：Apollo EDU PnC 赛道评估分析工具
+# apollo-eval
 
-帮助赛手理解评分标准、分析仿真结果、生成评估报告，指导下一步优化方向。
+> 版本：2.0.0 | 定位：Apollo EDU PnC 仿真评估与评分分析
+
+帮助理解评分标准、分析仿真结果、生成评估报告，指导下一步优化方向。
 
 **知识库路径**：`{BASE_DIR}/references/knowledge/`
 **配置文件**：`{BASE_DIR}/config.yaml`
@@ -35,7 +37,7 @@
 
 ```bash
 aem enter
-SKILL_SCRIPTS=/home/apollo/.openclaw/skills/apollo-eval/scripts
+SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
 python3 "$SKILL_SCRIPTS/realtime_monitor.py"
 ```
 
@@ -54,7 +56,7 @@ python3 "$SKILL_SCRIPTS/realtime_monitor.py"
 ### 流程 C：体感报告（已有 bag/record）
 
 ```bash
-SKILL_SCRIPTS=/home/apollo/.openclaw/skills/apollo-eval/scripts
+SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
 python3 "$SKILL_SCRIPTS/extract_metrics.py" /path/to/your.record
 ```
 
@@ -66,7 +68,7 @@ python3 "$SKILL_SCRIPTS/extract_metrics.py" /path/to/your.record
 
 ```bash
 DATA_DIR=/apollo_workspace/peixun
-SKILL_SCRIPTS=/home/apollo/.openclaw/skills/apollo-eval/scripts
+SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
 SCENARIO_FILE="$DATA_DIR/scenario.json"
 if [ ! -f "$SCENARIO_FILE" ]; then
   SCENARIO_FILE="$DATA_DIR/scenrio.json"
@@ -83,7 +85,7 @@ python3 "$SKILL_SCRIPTS/grading_system_py/main.py" \
 赛事输出目录形式：
 
 ```bash
-SKILL_SCRIPTS=/home/apollo/.openclaw/skills/apollo-eval/scripts
+SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
 PYTHONPATH=/opt/apollo/neo/python:$SKILL_SCRIPTS \
 python3 "$SKILL_SCRIPTS/grading_system_py/main.py" \
   --config /apollo_workspace/metric/<场景号>.json \

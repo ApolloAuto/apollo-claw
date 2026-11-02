@@ -8,18 +8,17 @@ description: Apollo EDU PnC 赛道仿真评估与评分分析工具。用于解�
 帮助赛手量化仿真结果、理解评分规则、生成评估报告并给出针对性调参建议。
 
 **脚本目录**：优先使用当前 Skill 自带脚本目录
-`/home/apollo/.openclaw/skills/apollo-eval/scripts/`。
-如果该目录不存在，再检查 `/apollo_workspace/.comate/skills/apollo-eval/scripts/`。
-不要使用旧路径 `/apollo_workspace/.claude/skills/apollo-eval/scripts/`。
+`${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts/`（本 skill 加载目录下的 scripts/）。
+不要使用任何机器专属的旧绝对路径。
 
 后文用 `$SKILL_SCRIPTS` 表示实际存在的脚本目录。
 
 执行脚本前先初始化路径：
 
 ```bash
-SKILL_SCRIPTS=/home/apollo/.openclaw/skills/apollo-eval/scripts
+SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
 if [ ! -d "$SKILL_SCRIPTS" ]; then
-  SKILL_SCRIPTS=/apollo_workspace/.comate/skills/apollo-eval/scripts
+  SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
 fi
 ```
 
@@ -254,7 +253,7 @@ PYTHONPATH=/opt/apollo/neo/python:$SKILL_SCRIPTS
 
 ```bash
 DATA_DIR=/apollo_workspace/peixun
-SKILL_SCRIPTS=/home/apollo/.openclaw/skills/apollo-eval/scripts
+SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
 SCENARIO_FILE="$DATA_DIR/scenario.json"
 if [ ! -f "$SCENARIO_FILE" ]; then
   SCENARIO_FILE="$DATA_DIR/scenrio.json"
@@ -273,7 +272,7 @@ python3 "$SKILL_SCRIPTS/grading_system_py/main.py" \
 ### 单场景评分
 
 ```bash
-SKILL_SCRIPTS=/home/apollo/.openclaw/skills/apollo-eval/scripts
+SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
 PYTHONPATH=/opt/apollo/neo/python:$SKILL_SCRIPTS \
 python3 "$SKILL_SCRIPTS/grading_system_py/main.py" \
   --config /apollo_workspace/metric/<场景号>.json \
@@ -287,7 +286,7 @@ python3 "$SKILL_SCRIPTS/grading_system_py/main.py" \
 ```bash
 for i in 1 2 3 4 5; do
   echo "=== 场景 $i ==="
-  SKILL_SCRIPTS=/home/apollo/.openclaw/skills/apollo-eval/scripts
+  SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
   PYTHONPATH=/opt/apollo/neo/python:$SKILL_SCRIPTS \
   python3 "$SKILL_SCRIPTS/grading_system_py/main.py" \
     --config /apollo_workspace/metric/$i.json \
@@ -319,7 +318,7 @@ done
 ### Demo 模式（无需 Apollo 环境，验证脚本可用）
 
 ```bash
-SKILL_SCRIPTS=/home/apollo/.openclaw/skills/apollo-eval/scripts
+SKILL_SCRIPTS=${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts
 PYTHONPATH=$SKILL_SCRIPTS \
 python3 "$SKILL_SCRIPTS/grading_system_py/main.py" \
   --config /apollo_workspace/metric/1.json \
@@ -335,7 +334,7 @@ python3 "$SKILL_SCRIPTS/grading_system_py/main.py" \
 - **修改参数后必须提醒**：每次给出调参建议时，必须附上 `aem profile use default`
 - **职责边界**：录制 cyber record、采集数据包、回放验证和测试闭环属于 `apollo-test`；`apollo-eval` 只分析已有数据和仿真评分结果
 - **环境要求**：实时订阅需要在 `aem enter` 后的 Apollo 容器内运行；离线 bag 评分可在具备 `/opt/apollo/neo/python` 的环境运行，但必须设置 `PYTHONPATH=/opt/apollo/neo/python:$SKILL_SCRIPTS`
-- **路径优先级**：当前安装路径是 `/home/apollo/.openclaw/skills/apollo-eval`；如发现 `.comate` 镜像可作为备选，但不要回退到 `.claude`
+- **路径解析**：脚本目录就在本 skill 的 `scripts/` 下，用 `${DSH_HOME:-$HOME/.dsh}/skills/apollo-eval/scripts`；不要照抄本文档里的任何机器专属绝对路径。
 
 ---
 

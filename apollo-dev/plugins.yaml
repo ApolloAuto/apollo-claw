@@ -1,0 +1,23 @@
+schema_version: 1
+# Apollo 11.0 开发能力子 skill 注册表（env 式：子 skill 为顶层平级 skill，照常自动触发）
+# apollo-dev 作为导航入口，按用户意图路由到下列子 skill。
+# 子能力实体为 <本 skill>/modules/<name>/ 目录（内嵌，非独立 skill），纯知识模块（只有 README.md，无 CLI 脚本）。
+# 调用方式 = 用 `skill` 工具加载对应子 skill（它们各自的 description 也会自动触发），
+#            再回 apollo-dev 的 references/manual/ 查源码佐证。
+# 加新子 skill 只需在本文件登记（并保证该 skill 以顶层目录存在）。
+
+skills:
+  apollo-architecture:     { desc: 全局架构导航/找模块找文件/channel 走向/启动顺序/挑 skill, manual: [11_cyber框架, 14_数据与消息] }
+  apollo-build-test:       { desc: 编译单模块/bazel 单测/lint/进 docker/编译链接错误定位,       manual: [00_versions, 15_二次开发手册] }
+  apollo-debug:            { desc: 运行时调试/模块不发消息/频率不对/崩溃/conf 没生效/cyber 工具/record 回放/日志, manual: [11_cyber框架, 14_数据与消息] }
+  apollo-new-component:    { desc: 新建 cyber 模块或 Component/dag/launch/conf/cyberfile.xml/.so 不加载/Init 没调, manual: [15_二次开发手册, 11_cyber框架] }
+  apollo-plugin-dev:       { desc: 加改插件/plugins.xml/注册不生效/CreateInstance 返回 nullptr/conf 找不到, manual: [15_二次开发手册, 12_planning源码] }
+  apollo-planning-dev:     { desc: planning task/scenario/stage/traffic_rule/规划参数/不出轨迹/场景不切换/openspace 泊车, manual: [12_planning源码] }
+  apollo-control-dev:      { desc: 控制器 LQR/MPC/PID/ControlTask/横纵向参数/标定表/画龙抖动顿挫过冲/prediction evaluator, manual: [13_control源码] }
+  apollo-perception-dev:   { desc: 感知检测/分割/跟踪/滤波/接模型推理后端/pipeline conf/msg_adapter/GPU 报错, manual: [16_感知源码] }
+  apollo-localization-dev: { desc: 定位 RTK/NDT/MSF 融合代码与参数/MSF 地图/IMU 安装角/GNSS 杆臂/不收敛跳变, manual: [14_数据与消息] }
+  apollo-gnss-driver:      { desc: GNSS/INS 驱动/协议 parser/串口 TCP UDP NTRIP CAN/报文 ID/无数据时间戳为 0/CRC 失败, manual: [14_数据与消息] }
+  apollo-hmi-dev:          { desc: DreamView/DreamView Plus 面板后端/HMI 模式/车型配置/状态灯/点云轨迹/SimControl, manual: [] }
+  apollo-vehicle-sensor:   { desc: 新车型/CAN 报文协议/切 CAN 卡/接雷达相机毫米波 GNSS 驱动/外参标定/底盘无反馈/不出数据, manual: [17_canbus底盘开发] }
+
+# 意图 → 子 skill 的详细路由见 SKILL.md「11.0 开发 skill 路由」表。

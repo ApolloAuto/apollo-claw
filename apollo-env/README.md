@@ -1,118 +1,64 @@
-# apollo-env Skill 使用文档
+# apollo-env
 
-> 版本：1.0.0 | 适用赛事：百度 Apollo 星火自动驾驶大赛（PnC 赛道）
+> 版本：2.0.0 | 形态：导航入口 + 7 个功能模块
 
----
+## 简介
 
-## 一、简介
+`apollo-env` 是 Apollo 环境能力的入口 skill。它本身只做意图识别和路由，具体步骤、脚本和参考资料放在 `modules/` 下的对应目录里。
 
-`apollo-env` 专为 **Apollo EDU PnC 赛道系统安装**设计，覆盖从全新 Ubuntu 到 DreamView 可访问的完整安装链路。
+这些模块是**文档 + 脚本**，不是独立注册的 skill，不会单独触发；命中需求后先读对应 `modules/<name>/README.md`，再按其步骤执行。
 
-| 能力 | 说明 |
-|------|------|
-| **环境检测** | 自动检测 OS、CPU、Docker、内存、磁盘、网络、aem、buildtool |
-| **交互式安装引导** | 逐步引导安装 Docker→aem→工程→编译，每步需用户确认 |
-| **故障诊断** | 匹配安装过程中的常见报错，给出修复命令 |
+## 功能模块
 
-### 核心价值
+| 模块 | 能力 | 主要脚本 |
+|---|---|---|
+| `modules/env-check/` | 检查 OS、CPU、内存、磁盘、网络、Docker、aem、buildtool | `scripts/env_check.sh` |
+| `modules/install/` | 安装引导，编译与 profile 故障诊断 | `scripts/install.sh`、`scripts/diagnose.sh` |
+| `modules/vehicle-restore/` | 车型配置切换、基线恢复/回滚、车型指纹、感知模型 | `scripts/restore_baseline.sh`、`scripts/restore_plan.py` |
+| `modules/vehicle-usage/` | 车辆解锁、上电、充电和常见问题 | 纯说明 |
+| `modules/gnss-config/` | NTRIP 基站配置与检查 | `scripts/check_ntrip_base.py`、`scripts/configure_ntrip_base.py` |
+| `modules/lidar-config/` | 激光雷达型号、IP、端口、channel 配置 | `scripts/configure_lidar.py` |
+| `modules/camera-config/` | 相机配置、检查与新增 | `scripts/` 下对应脚本 |
 
-- **零基础友好**：全新 Ubuntu 系统一键引导安装 Apollo
-- **环境诊断**：自动检测 9 项环境指标，生成详细报告
-- **错误自愈**：常见安装错误自动匹配解决方案
-- **幂等安全**：已安装项自动跳过，支持断点续装
+## 路由规则
 
-### 架构设计
+| 用户意图 | 走哪个模块 |
+|---|---|
+| 切换车型配置、恢复、回滚、建立基线、车型指纹 | `modules/vehicle-restore/` |
+| 车辆解锁、启动、充电、使用说明 | `modules/vehicle-usage/` |
+| 配置或检查基站（NTRIP、RTCM） | `modules/gnss-config/` |
+| 配置或检查雷达 | `modules/lidar-config/` |
+| 配置、检查或新增相机 | `modules/camera-config/` |
+| 环境检测、环境状态 | `modules/env-check/` |
+| 安装 Apollo、编译报错、profile 故障 | `modules/install/` |
+| 清理录包、core、非 `.INFO` 日志 | 本 skill 的 `scripts/clean_apollo_storage.sh` |
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      apollo-env 架构                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│  用户触发 ──→ 问题分流 ──→ 流程选择                          │
-│     │            │              │                            │
-│     │            ├─ 安装请求 ──→ 流程 A (安装引导)           │
-│     │            ├─ 环境检测 ──→ Step 1 (env_check.sh)       │
-│     │            └─ 故障诊断 ──→ 知识库检索                   │
-│     │                                                         │
-│     ▼                                                         │
-│  ┌──────────────────────────────────────┐                   │
-│  │     环境检测脚本 (env_check.sh)       │                   │
-│  ├──────────────────────────────────────┤                   │
-│  │ • OS 版本检测                         │                   │
-│  │ • Docker 状态检测                     │                   │
-│  │ • aem/buildtool 可用性检测            │                   │
-│  │ • 硬件资源检测 (CPU/内存/磁盘)        │                   │
-│  │ • 网络连通性检测                      │                   │
-│  └──────────────────────────────────────┘                   │
-│     │                                                         │
-│     ▼                                                         │
-│  ┌──────────────────────────────────────┐                   │
-│  │        交互式安装引导                 │                   │
-│  ├──────────────────────────────────────┤                   │
-│  │ Step 1: 环境检测                      │                   │
-│  │ Step 2: Docker 安装                   │                   │
-│  │ Step 3: aem 安装                      │                   │
-│  │ Step 4: 克隆工程                      │                   │
-│  │ Step 5: 编译构建                      │                   │
-│  │ Step 6: 验证启动                      │                   │
-│  └──────────────────────────────────────┘                   │
-│     │                                                         │
-│     ▼                                                         │
-│  ┌──────────────────────────────────────┐                   │
-│  │        知识库检索系统                 │                   │
-│  ├──────────────────────────────────────┤                   │
-│  │ • 02_安装部署/ (11 个文件)            │                   │
-│  │ • 07_FAQ故障排查/ (6 个文件)          │                   │
-│  │ • Grep 工具精准检索                   │                   │
-│  │ • 高频问题快答                        │                   │
-│  └──────────────────────────────────────┘                   │
-│                                                               │
-└─────────────────────────────────────────────────────────────┘
+**防误判**：动作意图优先于车型关键词。「整成 HQEV 的配置」「切换车型」走 `vehicle-restore`；只有「HQEV 怎么解锁/充电」才走 `vehicle-usage`。
+
+## 统一命令入口
+
+`scripts/apollo-env.sh` 读取 `plugins.yaml` 动态分发子命令：
+
+```bash
+scripts/apollo-env.sh check                 # 环境检测
+scripts/apollo-env.sh diagnose              # 安装/编译诊断
+scripts/apollo-env.sh targets               # 列出可恢复车型
+scripts/apollo-env.sh restore --target HQEV # 恢复车型基线
+scripts/apollo-env.sh stamp                 # 车型指纹
+scripts/apollo-env.sh gnss check            # 检查 NTRIP 基站
+scripts/apollo-env.sh lidar list            # 列出雷达模板
+scripts/apollo-env.sh camera list           # 列出相机模板
+scripts/apollo-env.sh clean --dry-run       # 预览可清理的磁盘内容
 ```
 
----
+`clean` 只处理 `/apollo_workspace/data/` 下的 `record`、`records`、`core` 内容和非 `.INFO` 日志，并带越界校验。必须先 `--dry-run` 预览、确认后再 `--yes` 执行；它清理的是磁盘存储，不是内存。
 
-## 二、命令触发
+## 注册表与扩展
 
-```
-/apollo-env              # 完整流程：检测 → 安装 → 验证
-/apollo-env check        # 仅执行环境检测
-/apollo-env install      # 跳过检测，直接安装缺失项
-/apollo-env diagnose     # 故障诊断
-```
+| 文件 | 作用 |
+|---|---|
+| `plugins.yaml` | 模块清单与命令路由 |
+| `scripts/apollo-env.sh` | 按注册表分发子命令 |
+| `references/knowledge_index.md` | 知识库总索引 |
 
-## 三、自然语言触发
-
-> `安装Apollo`、`安装 Apollo`、`Docker安装`、`aem安装`、`全新环境`、`环境检测`、`application-pnc克隆`、`编译缓存`、`apollo-pkg`、`环境配置`
-
----
-
-## 四、环境要求
-
-| 项目 | 最低要求 |
-|------|----------|
-| 操作系统 | Ubuntu 18.04 / 20.04 / 22.04（不支持 macOS） |
-| Docker | ≥ 19.03 |
-| CPU | ≥ 4 核 |
-| 内存 | ≥ 16 GB |
-| 磁盘 | ≥ 55 GB |
-| GPU | 无要求（PnC 赛道不需要 GPU） |
-
----
-
-## 五、文件结构
-
-```
-apollo-env/
-├── _meta.json
-├── config.yaml              # URL 和版本要求（单一事实来源）
-├── SKILL.md                 # Skill 行为定义
-├── README.md                # 本文件
-├── scripts/
-│   └── env_check.sh         # 环境检测脚本（支持 --json，退出码 0/1/2）
-└── references/
-    ├── knowledge_index.md
-    └── knowledge/
-        ├── 02_安装部署/     # 11 个文件（安装全流程）
-        └── 07_FAQ故障排查/  # 6 个文件（安装相关报错）
-```
+新增能力：在 `modules/` 下新建模块目录（README + 脚本），在 `plugins.yaml` 的 `skills` 和 `routes` 登记，再更新本 README 与 `SKILL.md` 的路由表。

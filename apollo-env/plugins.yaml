@@ -1,0 +1,54 @@
+schema_version: 1
+# Apollo 环境能力插件注册表
+# apollo-env.sh 读取本文件动态路由；加新子 skill 只需在本文件登记，不改主程序。
+
+skills:
+  apollo-env-check: 环境检测
+  apollo-install: 安装与诊断
+  apollo-vehicle-restore: 车型配置切换/恢复/回滚/基线
+  apollo-vehicle-usage: 车辆使用说明
+  apollo-gnss-config: GNSS 基站
+  apollo-lidar-config: 激光雷达
+  apollo-camera-config: 相机
+
+routes:
+  # 顶层命令 → 脚本（run 相对于子 skill 根目录）
+  check: { skill: apollo-env-check, run: scripts/env_check.sh }
+  restore: { skill: apollo-vehicle-restore, run: scripts/restore_baseline.sh }
+  rollback: { skill: apollo-vehicle-restore, run: scripts/rollback_baseline.sh }
+  stamp: { skill: apollo-vehicle-restore, run: scripts/vehicle_stamp.sh }
+  current: { skill: apollo-vehicle-restore, run: "scripts/restore_plan.py detect" }
+  plan: { skill: apollo-vehicle-restore, run: "scripts/restore_plan.py plan" }
+  execute: { skill: apollo-vehicle-restore, run: "scripts/restore_plan.py execute" }
+  targets: { skill: apollo-vehicle-restore, run: scripts/targets.sh }
+  report: { skill: apollo-vehicle-restore, run: scripts/report.sh }
+  install: { skill: apollo-install, run: scripts/install.sh }
+  diagnose: { skill: apollo-install, run: scripts/diagnose.sh }
+  # 清理存储（录包 / core / 非 .INFO 日志）；脚本在 apollo-env 自身 scripts/ 下。
+  # 安全流程：先 clean --dry-run 预览，确认后再 clean --yes 执行。
+  clean: { skill: apollo-env, run: scripts/clean_apollo_storage.sh }
+
+  # 子命令组（gnss check / lidar configure 等）
+  baseline:
+    skill: apollo-vehicle-restore
+    sub:
+      create: { run: scripts/make_baseline.sh }
+      list: { run: scripts/baseline_list.sh }
+  gnss:
+    skill: apollo-gnss-config
+    sub:
+      check: { run: scripts/check_ntrip_base.py }
+      configure: { run: scripts/configure_ntrip_base.py }
+  lidar:
+    skill: apollo-lidar-config
+    sub:
+      list: { run: scripts/lidar_list.sh }
+      check: { run: scripts/check_lidar.py }
+      configure: { run: scripts/configure_lidar.py }
+  camera:
+    skill: apollo-camera-config
+    sub:
+      list: { run: scripts/camera_list.sh }
+      check: { run: scripts/check_camera.py }
+      configure: { run: scripts/configure_camera.py }
+      add: { run: scripts/add_camera.py }

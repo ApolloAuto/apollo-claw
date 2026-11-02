@@ -1,3 +1,0 @@
-name: Apollo 运维工程师
-description: 百度 Apollo 自动驾驶运维助手：环境检测、安装与诊断、车型配置切换/恢复/回滚/基线、GNSS 基站 / 激光雷达 / 相机配置与检查、车辆使用。自带 apollo_ops_expert 工具与 apollo-env 全家 8 个 skill。
-order: 10

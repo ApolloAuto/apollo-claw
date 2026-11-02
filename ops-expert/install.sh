@@ -1,138 +1,147 @@
 #!/usr/bin/env bash
-# Apollo Ops Expert 一键安装。直接执行即可：
-#   curl -fsSL <本文件地址> | bash
-#
-# 如需自定义资源位置，可用：
-#   --github-raw URL      目录形态资源
-#   --assets-tarball URL  单个 tar.gz 资源包
 set -euo pipefail
 
-DEFAULT_PLUGIN_PACKAGE="@apollo-ops/dsh-client-ui-apollo-ops"
-DEFAULT_GITHUB_RAW="https://raw.githubusercontent.com/ApolloAuto/apollo-claw/EDU/ops-expert/github-assets"
-
-PLUGIN_PACKAGE="${APOLLO_OPS_NPM_PACKAGE:-$DEFAULT_PLUGIN_PACKAGE}"
-PLUGIN_VERSION="${APOLLO_OPS_NPM_VERSION:-latest}"
-GITHUB_RAW_BASE_URL="${APOLLO_OPS_GITHUB_RAW_BASE_URL:-$DEFAULT_GITHUB_RAW}"
-ASSETS_TARBALL="${APOLLO_OPS_ASSETS_TARBALL:-}"
+REPO="${APOLLO_OPS_REPO:-ApolloAuto/apollo-claw}"
+BRANCH="${APOLLO_OPS_BRANCH:-EDU}"
 PROFILE="${DSH_PROFILE:-web}"
 DSH_HOME_DIR="${DSH_HOME:-$HOME/.dsh}"
-DEFAULT_PRESET=""
+WITH_LAN=0
+REQUIRED_SKILLS='apollo-env apollo-dev apollo-test apollo-eval'
 
-usage() {
-  cat <<'EOF'
-用法（来源二选一）:
-  ./install.sh --npm-package @apollo-ops/dsh-client-ui-apollo-ops \
-    --github-raw https://raw.githubusercontent.com/USER/REPO/main/github-assets
-
-  ./install.sh --npm-package @apollo-ops/dsh-client-ui-apollo-ops \
-    --assets-tarball https://your-oss.example.com/apollo-ops-assets.tar.gz
-
-选项:
-  --npm-package NAME       npm 包名（必填，或 APOLLO_OPS_NPM_PACKAGE）
-  --version VERSION        npm 版本，默认 latest
-  --github-raw URL         目录形态资源地址（含 release.env 与 presets-only/）
-  --assets-tarball URL     单个 tar.gz 资源包（解包后同目录形态）
-  --default PRESET         apollo-env 或 apollo-dev
-  -h, --help               显示帮助
-
-环境变量:
-  DSH_HOME      默认 ~/.dsh
-  DSH_PROFILE   默认 web
-EOF
-}
-while [ $# -gt 0 ]; do
+while [ "$#" -gt 0 ]; do
   case "$1" in
-    --npm-package) PLUGIN_PACKAGE="${2:?缺少 npm 包名}"; shift 2;;
-    --version) PLUGIN_VERSION="${2:?缺少版本}"; shift 2;;
-    --github-raw) GITHUB_RAW_BASE_URL="${2:?缺少地址}"; shift 2;;
-    --assets-tarball) ASSETS_TARBALL="${2:?缺少地址}"; shift 2;;
-    --default) DEFAULT_PRESET="${2:?需要 apollo-env 或 apollo-dev}"; shift 2;;
-    -h|--help) usage; exit 0;;
-    *) echo "未知参数: $1" >&2; exit 2;;
+    --with-lan) WITH_LAN=1; shift ;;
+    -h|--help)
+      echo 'Usage: install.sh [--with-lan]'
+      echo 'Optional: APOLLO_OPS_REPO / APOLLO_OPS_BRANCH override the source (default ApolloAuto/apollo-claw EDU).'
+      echo 'Optional: APOLLO_OPS_SKILLS_SOURCE points at a local checkout for offline Skill install.'
+      exit 0
+      ;;
+    *) echo "Unknown option: $1" >&2; exit 2 ;;
   esac
 done
 
-[ -n "$PLUGIN_PACKAGE" ] || { echo "错误：请提供 --npm-package" >&2; exit 2; }
-if [ -z "$GITHUB_RAW_BASE_URL" ] && [ -z "$ASSETS_TARBALL" ]; then
-  echo "错误：请提供 --github-raw 或 --assets-tarball" >&2; exit 2
-fi
-command -v dsh  >/dev/null || { echo '错误：找不到 dsh' >&2; exit 1; }
-command -v curl >/dev/null || { echo '错误：找不到 curl' >&2; exit 1; }
-command -v tar  >/dev/null || { echo '错误：找不到 tar' >&2; exit 1; }
-
-TMP=$(mktemp -d)
-trap 'rm -rf "$TMP"' EXIT
-ASSETS="$TMP/assets"
-mkdir -p "$ASSETS"
-
-# ── 1) 准备资源目录 ─────────────────────────────────────────────────────────
-echo "[1/5] 获取 skills/预设资源"
-if [ -n "$ASSETS_TARBALL" ]; then
-  echo "      来源: tarball $ASSETS_TARBALL"
-  curl -fL --retry 3 "$ASSETS_TARBALL" -o "$TMP/assets.tar.gz"
-  tar -xzf "$TMP/assets.tar.gz" -C "$ASSETS"
-  # 兼容压缩包内多包一层目录的情况
-  if [ ! -f "$ASSETS/release.env" ]; then
-    inner=$(find "$ASSETS" -maxdepth 2 -name release.env -printf '%h\n' 2>/dev/null | head -1)
-    [ -n "$inner" ] && ASSETS="$inner"
-  fi
-else
-  GITHUB_RAW_BASE_URL="${GITHUB_RAW_BASE_URL%/}"
-  echo "      来源: 目录 $GITHUB_RAW_BASE_URL"
-  curl -fL --retry 3 "$GITHUB_RAW_BASE_URL/release.env" -o "$ASSETS/release.env"
-  for f in presets-only/install-presets.sh \
-           presets-only/apollo-env/agent.cordis.yml \
-           presets-only/apollo-env/preset.yml \
-           presets-only/apollo-env/apollo-ops-expert.mjs \
-           presets-only/apollo-dev/agent.cordis.yml \
-           presets-only/apollo-dev/preset.yml; do
-    mkdir -p "$ASSETS/$(dirname "$f")"
-    curl -fL --retry 3 "$GITHUB_RAW_BASE_URL/$f" -o "$ASSETS/$f"
-  done
-fi
-[ -f "$ASSETS/release.env" ] || { echo "错误：资源里没有 release.env" >&2; exit 1; }
-[ -f "$ASSETS/presets-only/install-presets.sh" ] || { echo "错误：资源里缺 presets-only/install-presets.sh" >&2; exit 1; }
-
-SKILLS_ARCHIVE=$(sed -n 's/^SKILLS_ARCHIVE=//p' "$ASSETS/release.env" | head -1)
-[ -n "$SKILLS_ARCHIVE" ] || { echo "错误：release.env 缺少 SKILLS_ARCHIVE" >&2; exit 1; }
-
-# ── 2) 取 skills 包 ─────────────────────────────────────────────────────────
-echo "[2/5] 取 skills 包: $SKILLS_ARCHIVE"
-SKILLS_TGZ="$TMP/apollo-skills.tar.gz"
-case "$SKILLS_ARCHIVE" in
-  https://*|http://*)
-    curl -fL --retry 3 "$SKILLS_ARCHIVE" -o "$SKILLS_TGZ" ;;
-  *)
-    if [ -f "$ASSETS/$SKILLS_ARCHIVE" ]; then
-      cp "$ASSETS/$SKILLS_ARCHIVE" "$SKILLS_TGZ"
-    elif [ -n "$GITHUB_RAW_BASE_URL" ]; then
-      curl -fL --retry 3 "$GITHUB_RAW_BASE_URL/$SKILLS_ARCHIVE" -o "$SKILLS_TGZ"
-    else
-      echo "错误：资源里找不到 $SKILLS_ARCHIVE，且 SKILLS_ARCHIVE 不是完整 URL" >&2; exit 1
-    fi ;;
+case "$BRANCH" in
+  ''|/*|*..*|*[!A-Za-z0-9._/-]*) echo "Invalid APOLLO_OPS_BRANCH: $BRANCH" >&2; exit 2 ;;
 esac
 
-# ── 3) 装 npm 插件 ──────────────────────────────────────────────────────────
-echo "[3/5] 安装 npm 插件: $PLUGIN_PACKAGE@$PLUGIN_VERSION"
-dsh plugin --profile "$PROFILE" add "$PLUGIN_PACKAGE@$PLUGIN_VERSION"
+for tool in dsh npm curl tar; do
+  command -v "$tool" >/dev/null 2>&1 || { echo "Required command not found: $tool" >&2; exit 1; }
+done
+if command -v sha256sum >/dev/null 2>&1; then
+  sha256_file() { sha256sum "$1" | awk '{print $1}'; }
+elif command -v shasum >/dev/null 2>&1; then
+  sha256_file() { shasum -a 256 "$1" | awk '{print $1}'; }
+else
+  echo 'Required command not found: sha256sum or shasum.' >&2
+  exit 1
+fi
 
-# ── 4) 装 skills ────────────────────────────────────────────────────────────
-echo "[4/5] 安装 skills 到 $DSH_HOME_DIR/skills"
+TMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+raw_url() { printf 'https://raw.githubusercontent.com/%s/%s/ops-expert' "$1" "$2"; }
+# Branch names may contain slashes; URL-encode them for the archive endpoint.
+archive_url() {
+  printf 'https://github.com/%s/archive/refs/heads/%s.tar.gz' "$1" "${2//\//%2F}"
+}
+
+field() { sed -n "s/^$2=//p" "$1" | head -1; }
+
+validate_meta() {
+  local f="$1" v c p l pkg
+  [ -f "$f" ] || return 1
+  v=$(field "$f" RELEASE_VERSION)
+  c=$(field "$f" CLIENT_PACKAGE)
+  p=$(field "$f" PRESETS_PACKAGE)
+  l=$(field "$f" LAN_PACKAGE)
+  [ -n "$v" ] && [ -n "$c" ] && [ -n "$p" ] && [ -n "$l" ] || return 1
+  case "$v" in *[!A-Za-z0-9.+-]*) return 1 ;; esac
+  for pkg in "$c" "$p" "$l"; do
+    case "$pkg" in @*/*@*) ;; *) return 1 ;; esac
+  done
+}
+
+SKILLS_LOCAL="${APOLLO_OPS_SKILLS_SOURCE:-}"
+if [ -n "$SKILLS_LOCAL" ]; then
+  META="$SKILLS_LOCAL/ops-expert/github-assets/release.env"
+  [ -f "$META" ] || { echo "缺少 $META" >&2; exit 1; }
+  echo "使用本地目录: $SKILLS_LOCAL"
+  REPO=''
+  BRANCH=''
+else
+  echo "来源: $REPO @ $BRANCH"
+  curl -fsSL "$(raw_url "$REPO" "$BRANCH")/github-assets/release.env" -o "$TMP_DIR/release.env" \
+    || { echo "无法读取 $REPO@$BRANCH 的 ops-expert/github-assets/release.env" >&2; exit 1; }
+  META="$TMP_DIR/release.env"
+fi
+validate_meta "$META" || { echo "release.env 内容不完整: $META" >&2; exit 1; }
+
+RELEASE_VERSION=$(field "$META" RELEASE_VERSION)
+CLIENT_PACKAGE=$(field "$META" CLIENT_PACKAGE)
+PRESETS_PACKAGE=$(field "$META" PRESETS_PACKAGE)
+LAN_PACKAGE=$(field "$META" LAN_PACKAGE)
+case "$RELEASE_VERSION" in ''|*[!A-Za-z0-9.+-]*) echo 'Invalid RELEASE_VERSION in release.env.' >&2; exit 1 ;; esac
+for package in "$CLIENT_PACKAGE" "$PRESETS_PACKAGE" "$LAN_PACKAGE"; do
+  case "$package" in @*/*@*) ;; *) echo "Invalid npm package spec in release.env: $package" >&2; exit 1 ;; esac
+done
+
+printf 'Installing client plugin %s\n' "$CLIENT_PACKAGE"
+dsh plugin --profile "$PROFILE" add "$CLIENT_PACKAGE"
+
+SKILLS_LOCAL="${APOLLO_OPS_SKILLS_SOURCE:-}"
+if [ -n "$SKILLS_LOCAL" ]; then
+  printf 'Using local Skills from %s\n' "$SKILLS_LOCAL"
+  EXTRACT="$SKILLS_LOCAL"
+else
+  printf 'Downloading Skills %s from %s (%s)\n' "$RELEASE_VERSION" "$REPO" "$BRANCH"
+  REPO_ARCHIVE="$TMP_DIR/repo.tar.gz"
+  if ! curl -fL --retry 3 "$(archive_url "$REPO" "$BRANCH")" -o "$REPO_ARCHIVE"; then
+    echo 'Skills download failed.' >&2
+    exit 1
+  fi
+  EXTRACT="$TMP_DIR/repo"
+  mkdir -p "$EXTRACT"
+  tar -xzf "$REPO_ARCHIVE" -C "$EXTRACT" --strip-components=1
+fi
+
+for skill in $REQUIRED_SKILLS; do
+  [ -f "$EXTRACT/$skill/SKILL.md" ] || { echo "Skills source is missing $skill/SKILL.md" >&2; exit 1; }
+done
+
 mkdir -p "$DSH_HOME_DIR/skills"
-tar -xzf "$SKILLS_TGZ" -C "$DSH_HOME_DIR/skills"
-echo "      skill 数: $(find "$DSH_HOME_DIR/skills" -mindepth 1 -maxdepth 1 -type d | wc -l)"
+STAMP=$(date +%Y%m%d%H%M%S)
+for skill in $REQUIRED_SKILLS; do
+  if [ -e "$DSH_HOME_DIR/skills/$skill" ]; then
+    BACKUP="$DSH_HOME_DIR/skills/$skill.bak.$STAMP"
+    mv "$DSH_HOME_DIR/skills/$skill" "$BACKUP"
+    printf 'Backed up existing %s -> %s\n' "$skill" "$BACKUP"
+  fi
+  cp -a "$EXTRACT/$skill" "$DSH_HOME_DIR/skills/$skill"
+  [ -f "$DSH_HOME_DIR/skills/$skill/SKILL.md" ] || { echo "Failed to install $skill" >&2; exit 1; }
+  printf 'Installed Skill %s\n' "$skill"
+done
 
-# ── 5) 装两个预设（含作用域视图）────────────────────────────────────────────
-echo "[5/5] 安装 agent 预设"
-chmod +x "$ASSETS/presets-only/install-presets.sh"
-PRESET_ARGS=()
-[ -n "$DEFAULT_PRESET" ] && PRESET_ARGS+=(--default "$DEFAULT_PRESET")
-DSH_HOME="$DSH_HOME_DIR" DSH_PROFILE="$PROFILE" \
-  bash "$ASSETS/presets-only/install-presets.sh" "${PRESET_ARGS[@]}"
+printf 'Installing agent presets %s\n' "$PRESETS_PACKAGE"
+# 取包内脚本直接执行：npx 会通过 node_modules/.bin 软链调用，脚本按自身目录
+# 找预设时会被解析成 .bin 目录而失败。下载 tarball 后从真实路径运行可避免。
+PRESET_DIR="$TMP_DIR/presets"
+mkdir -p "$PRESET_DIR"
+if ! npm pack "$PRESETS_PACKAGE" --pack-destination "$PRESET_DIR" >/dev/null 2>&1; then
+  echo "Failed to download $PRESETS_PACKAGE" >&2
+  exit 1
+fi
+tar -xzf "$PRESET_DIR"/*.tgz -C "$PRESET_DIR"
+PRESET_INSTALLER="$PRESET_DIR/package/install-presets.sh"
+[ -f "$PRESET_INSTALLER" ] || { echo 'Presets package is missing install-presets.sh' >&2; exit 1; }
+DSH_HOME="$DSH_HOME_DIR" DSH_PROFILE="$PROFILE" bash "$PRESET_INSTALLER"
 
-echo
-echo "完成。"
-echo "  插件 : $DSH_HOME_DIR/profiles/$PROFILE"
-echo "  skills: $DSH_HOME_DIR/skills"
-echo "  预设 : $DSH_HOME_DIR/.agent-presets/{apollo-env,apollo-dev}"
-echo "请重启 dsh web 后生效。"
+if [ "$WITH_LAN" -eq 1 ]; then
+  printf 'Installing optional LAN plugin %s\n' "$LAN_PACKAGE"
+  dsh plugin --profile "$PROFILE" add "$LAN_PACKAGE"
+fi
+
+printf '\nInstallation complete. Restart DSH Web to load the changes.\n'
+if [ "$WITH_LAN" -eq 1 ]; then
+  printf 'LAN access is enabled; use only on a trusted network.\n'
+fi

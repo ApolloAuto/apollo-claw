@@ -1,6 +1,6 @@
 # 使用 Git 托管代码与配置
 
-> 适用场景：Apollo EDU 赛事 PnC 赛道，管理 `modules/planning/` 源码和 `profiles/default/` 配置参数。
+> 适用场景：Apollo EDU PnC 赛道，管理 `modules/planning/` 源码和 `profiles/default/` 配置参数。
 
 ---
 
@@ -105,7 +105,7 @@ git commit -m "调整 crosswalk 减速距离：10m → 8m，通过人行道场�
 
 ## 五、分支管理——为每个场景维护独立配置
 
-使用 branch 隔离不同赛事场景的配置，避免相互干扰：
+使用 branch 隔离不同EDU 场景的配置，避免相互干扰：
 
 ### 分支规划建议
 
@@ -161,7 +161,7 @@ exit
 
 ### 6.1 创建远端仓库
 
-在 GitHub 或 Gitee 创建一个**私有仓库**（建议私有，避免泄露赛事方案）。
+在 GitHub 或 Gitee 创建一个**私有仓库**（建议私有，避免泄露EDU 方案）。
 
 ### 6.2 关联远端
 

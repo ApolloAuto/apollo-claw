@@ -12,7 +12,7 @@ Cannot find WORKSPACE
 Different packages in workspace have a same name
 Package xxx is not in xxx
 Can't find any package in workspace xxx
-![](../images/02_安装部署/cbe393bfb57e863a783266401cbc0688.png)
+[](../images/02_安装部署/cbe393bfb57e863a783266401cbc0688.png)
 
 ```bash
 exit
@@ -38,7 +38,7 @@ buildtool 需要在 /apollo_workspace 下执行！
 
 # 问题二：buildtool调用bazel编译后，bazel报错：
 
-![](../images/02_安装部署/5fe4e299f0f6cb162990fcad4606bacb.png)
+[](../images/02_安装部署/5fe4e299f0f6cb162990fcad4606bacb.png)
 
 原因：bazel提示Error downloading，说明bazel由于网络原因无法下载自身的依赖
 
@@ -61,11 +61,11 @@ tar -xzvf cache.tar.gz
 rm -rf /apollo_workspace/.cache/bazel/install/cbf972266931ad9fad1857441b832915
 buildtool build
 ```
-![](../images/02_安装部署/a18b79893a4d10e0871e1a1b72b39155.png)
+[](../images/02_安装部署/a18b79893a4d10e0871e1a1b72b39155.png)
 
 # 问题三：编译过程中，bazel 提示 -luuid 的错误：
 
-![](../images/02_安装部署/410d76f97068a3d936093aeee41e4494.png)
+[](../images/02_安装部署/410d76f97068a3d936093aeee41e4494.png)
 
 原因：这个错误是由于旧版本的镜像缺少uuid的依赖，导致连接器无法连接uuid的动态库，最终编译失败
 
@@ -87,7 +87,7 @@ aem start -f
 sudo apt install uuid-dev &&
 sudo ldconfig
 ```
-# 问题四：赛事编译缓存：
+# 问题四：EDU 编译缓存：
 
 提前编译好的planning模块缓存可以显著减少编译时间。
 
@@ -105,4 +105,4 @@ buildtool build
 rm -rf /apollo_workspace/.cache/bazel/install/cbf972266931ad9fad1857441b832915
 buildtool build
 ```
-![](../images/02_安装部署/6576afa89fa1c97ab2adc62721a5bb64.png)
+[](../images/02_安装部署/6576afa89fa1c97ab2adc62721a5bb64.png)

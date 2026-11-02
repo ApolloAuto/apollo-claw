@@ -1,0 +1,75 @@
+# Apollo 应用实践文档
+
+> 本目录按 Apollo 文档站点“应用实践”栏目整理，共 61 篇独立 Markdown 文档。
+> 原始入口：<https://apollo.baidu.com/community/Apollo-Homepage-Document?doc=BYFxAcGcC4HpYIbgPYBtXIHQCMEEsATAV0wGNkBbWA5UyRFdZWVBEAU0hFjwDsD2AD0ygKqIA>
+> 文档版本：Apollo latest（页面抓取日期：2026-09-08）
+
+## 文档目录
+
+1. [综述](01-%E7%BB%BC%E8%BF%B0.md)
+2. [Apollo-BEV-Train](02-Apollo-BEV-Train.md)
+3. [Apollo-BEV-Model-Export](03-Apollo-BEV-Model-Export.md)
+4. [Apollo-Model-Deployment](04-Apollo-Model-Deployment.md)
+5. [Dreamview +快速使用](05-Dreamview%20%2B%E5%BF%AB%E9%80%9F%E4%BD%BF%E7%94%A8.md)
+6. [Studio 插件安装](06-Studio%20%E6%8F%92%E4%BB%B6%E5%AE%89%E8%A3%85.md)
+7. [播放离线数据包](07-%E6%92%AD%E6%94%BE%E7%A6%BB%E7%BA%BF%E6%95%B0%E6%8D%AE%E5%8C%85.md)
+8. [SimControl 仿真模式使用](08-SimControl%20%E4%BB%BF%E7%9C%9F%E6%A8%A1%E5%BC%8F%E4%BD%BF%E7%94%A8.md)
+9. [Cyber RT 实践之 Hello Apollo](09-Cyber%20RT%20%E5%AE%9E%E8%B7%B5%E4%B9%8B%20Hello%20Apollo.md)
+10. [Cyber通信机制实践之Listener-Talker通信（C++）](10-Cyber%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6%E5%AE%9E%E8%B7%B5%E4%B9%8BListener-Talker%E9%80%9A%E4%BF%A1%EF%BC%88C%2B%2B%EF%BC%89.md)
+11. [Cyber通信机制实践之Listener-Talker通信（python）](11-Cyber%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6%E5%AE%9E%E8%B7%B5%E4%B9%8BListener-Talker%E9%80%9A%E4%BF%A1%EF%BC%88python%EF%BC%89.md)
+12. [Cyber RT 之 Component 实践](12-Cyber%20RT%20%E4%B9%8B%20Component%20%E5%AE%9E%E8%B7%B5.md)
+13. [Cyber RT 之 Timer Component 实践](13-Cyber%20RT%20%E4%B9%8B%20Timer%20Component%20%E5%AE%9E%E8%B7%B5.md)
+14. [Cyber调度实践之优先级策略配置](14-Cyber%E8%B0%83%E5%BA%A6%E5%AE%9E%E8%B7%B5%E4%B9%8B%E4%BC%98%E5%85%88%E7%BA%A7%E7%AD%96%E7%95%A5%E9%85%8D%E7%BD%AE.md)
+15. [Apollo工具开发之交通灯仿真控制工具制作](15-Apollo%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91%E4%B9%8B%E4%BA%A4%E9%80%9A%E7%81%AF%E4%BB%BF%E7%9C%9F%E6%8E%A7%E5%88%B6%E5%B7%A5%E5%85%B7%E5%88%B6%E4%BD%9C.md)
+16. [Apollo工具开发之路径设置工具制作](16-Apollo%E5%B7%A5%E5%85%B7%E5%BC%80%E5%8F%91%E4%B9%8B%E8%B7%AF%E5%BE%84%E8%AE%BE%E7%BD%AE%E5%B7%A5%E5%85%B7%E5%88%B6%E4%BD%9C.md)
+17. [感知模块综述](17-%E6%84%9F%E7%9F%A5%E6%A8%A1%E5%9D%97%E7%BB%BC%E8%BF%B0.md)
+18. [组件开发模式说明](18-%E7%BB%84%E4%BB%B6%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F%E8%AF%B4%E6%98%8E.md)
+19. [基于组件进行开发](19-%E5%9F%BA%E4%BA%8E%E7%BB%84%E4%BB%B6%E8%BF%9B%E8%A1%8C%E5%BC%80%E5%8F%91.md)
+20. [点云模型二次开发](20-%E7%82%B9%E4%BA%91%E6%A8%A1%E5%9E%8B%E4%BA%8C%E6%AC%A1%E5%BC%80%E5%8F%91.md)
+21. [视觉模型二次开发](21-%E8%A7%86%E8%A7%89%E6%A8%A1%E5%9E%8B%E4%BA%8C%E6%AC%A1%E5%BC%80%E5%8F%91.md)
+22. [视觉检测与占据栅格模型介绍及教程](22-%E8%A7%86%E8%A7%89%E6%A3%80%E6%B5%8B%E4%B8%8E%E5%8D%A0%E6%8D%AE%E6%A0%85%E6%A0%BC%E6%A8%A1%E5%9E%8B%E4%BB%8B%E7%BB%8D%E5%8F%8A%E6%95%99%E7%A8%8B.md)
+23. [激光雷达参数介绍](23-%E6%BF%80%E5%85%89%E9%9B%B7%E8%BE%BE%E5%8F%82%E6%95%B0%E4%BB%8B%E7%BB%8D.md)
+24. [激光雷达感知参数开发实践](24-%E6%BF%80%E5%85%89%E9%9B%B7%E8%BE%BE%E6%84%9F%E7%9F%A5%E5%8F%82%E6%95%B0%E5%BC%80%E5%8F%91%E5%AE%9E%E8%B7%B5.md)
+25. [插件开发模式说明](25-%E6%8F%92%E4%BB%B6%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F%E8%AF%B4%E6%98%8E.md)
+26. [基于插件进行开发](26-%E5%9F%BA%E4%BA%8E%E6%8F%92%E4%BB%B6%E8%BF%9B%E8%A1%8C%E5%BC%80%E5%8F%91.md)
+27. [centerpoint模型fp16部署](27-centerpoint%E6%A8%A1%E5%9E%8Bfp16%E9%83%A8%E7%BD%B2.md)
+28. [perf日志增加以及可视化使用](28-perf%E6%97%A5%E5%BF%97%E5%A2%9E%E5%8A%A0%E4%BB%A5%E5%8F%8A%E5%8F%AF%E8%A7%86%E5%8C%96%E4%BD%BF%E7%94%A8.md)
+29. [规划模块综述](29-%E8%A7%84%E5%88%92%E6%A8%A1%E5%9D%97%E7%BB%BC%E8%BF%B0.md)
+30. [贴边行驶使用教程](30-%E8%B4%B4%E8%BE%B9%E8%A1%8C%E9%A9%B6%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B.md)
+31. [开发模式说明](31-%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F%E8%AF%B4%E6%98%8E.md)
+32. [Apollo规划之远程启动车辆-命令控制（9.0版）](32-Apollo%E8%A7%84%E5%88%92%E4%B9%8B%E8%BF%9C%E7%A8%8B%E5%90%AF%E5%8A%A8%E8%BD%A6%E8%BE%86-%E5%91%BD%E4%BB%A4%E6%8E%A7%E5%88%B6%EF%BC%889.0%E7%89%88%EF%BC%89.md)
+33. [开发模式说明](33-%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F%E8%AF%B4%E6%98%8E.md)
+34. [定速巡航仿真调试（9.0版）](34-%E5%AE%9A%E9%80%9F%E5%B7%A1%E8%88%AA%E4%BB%BF%E7%9C%9F%E8%B0%83%E8%AF%95%EF%BC%889.0%E7%89%88%EF%BC%89.md)
+35. [开发模式说明](35-%E5%BC%80%E5%8F%91%E6%A8%A1%E5%BC%8F%E8%AF%B4%E6%98%8E.md)
+36. [限速区域仿真调试 - 新增traffic rule插件](36-%E9%99%90%E9%80%9F%E5%8C%BA%E5%9F%9F%E4%BB%BF%E7%9C%9F%E8%B0%83%E8%AF%95%20-%20%E6%96%B0%E5%A2%9Etraffic%20rule%E6%8F%92%E4%BB%B6.md)
+37. [组合惯导接入Apollo](37-%E7%BB%84%E5%90%88%E6%83%AF%E5%AF%BC%E6%8E%A5%E5%85%A5Apollo.md)
+38. [新lidar接入Apollo](38-%E6%96%B0lidar%E6%8E%A5%E5%85%A5Apollo.md)
+39. [使用gdb工具调试](39-%E4%BD%BF%E7%94%A8gdb%E5%B7%A5%E5%85%B7%E8%B0%83%E8%AF%95.md)
+40. [上车使用教程概览](40-%E4%B8%8A%E8%BD%A6%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B%E6%A6%82%E8%A7%88.md)
+41. [概览](41-%E6%A6%82%E8%A7%88.md)
+42. [符合Apollo线控标准的车辆](42-%E7%AC%A6%E5%90%88Apollo%E7%BA%BF%E6%8E%A7%E6%A0%87%E5%87%86%E7%9A%84%E8%BD%A6%E8%BE%86.md)
+43. [利用Apollo工具生成CANBUS适配代码](43-%E5%88%A9%E7%94%A8Apollo%E5%B7%A5%E5%85%B7%E7%94%9F%E6%88%90CANBUS%E9%80%82%E9%85%8D%E4%BB%A3%E7%A0%81.md)
+44. [车辆底盘开环验证DBC的方法](44-%E8%BD%A6%E8%BE%86%E5%BA%95%E7%9B%98%E5%BC%80%E7%8E%AF%E9%AA%8C%E8%AF%81DBC%E7%9A%84%E6%96%B9%E6%B3%95.md)
+45. [车辆集成](45-%E8%BD%A6%E8%BE%86%E9%9B%86%E6%88%90.md)
+46. [Apollo系统安装](46-Apollo%E7%B3%BB%E7%BB%9F%E5%AE%89%E8%A3%85.md)
+47. [惯导设备PP7配置](47-%E6%83%AF%E5%AF%BC%E8%AE%BE%E5%A4%87PP7%E9%85%8D%E7%BD%AE.md)
+48. [定位模块配置](48-%E5%AE%9A%E4%BD%8D%E6%A8%A1%E5%9D%97%E9%85%8D%E7%BD%AE.md)
+49. [车辆控制评测分析云服务的应用](49-%E8%BD%A6%E8%BE%86%E6%8E%A7%E5%88%B6%E8%AF%84%E6%B5%8B%E5%88%86%E6%9E%90%E4%BA%91%E6%9C%8D%E5%8A%A1%E7%9A%84%E5%BA%94%E7%94%A8.md)
+50. [车辆动力学云标定](50-%E8%BD%A6%E8%BE%86%E5%8A%A8%E5%8A%9B%E5%AD%A6%E4%BA%91%E6%A0%87%E5%AE%9A.md)
+51. [车辆循迹演示](51-%E8%BD%A6%E8%BE%86%E5%BE%AA%E8%BF%B9%E6%BC%94%E7%A4%BA.md)
+52. [感知设备集成](52-%E6%84%9F%E7%9F%A5%E8%AE%BE%E5%A4%87%E9%9B%86%E6%88%90.md)
+53. [感知设备标定](53-%E6%84%9F%E7%9F%A5%E8%AE%BE%E5%A4%87%E6%A0%87%E5%AE%9A.md)
+54. [虚拟车道线制作](54-%E8%99%9A%E6%8B%9F%E8%BD%A6%E9%81%93%E7%BA%BF%E5%88%B6%E4%BD%9C.md)
+55. [规划适配](55-%E8%A7%84%E5%88%92%E9%80%82%E9%85%8D.md)
+56. [感知适配](56-%E6%84%9F%E7%9F%A5%E9%80%82%E9%85%8D.md)
+57. [自动驾驶演示](57-%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6%E6%BC%94%E7%A4%BA.md)
+58. [感知设备集成](58-%E6%84%9F%E7%9F%A5%E8%AE%BE%E5%A4%87%E9%9B%86%E6%88%90.md)
+59. [感知设备标定](59-%E6%84%9F%E7%9F%A5%E8%AE%BE%E5%A4%87%E6%A0%87%E5%AE%9A.md)
+60. [感知适配](60-%E6%84%9F%E7%9F%A5%E9%80%82%E9%85%8D.md)
+61. [自动驾驶演示](61-%E8%87%AA%E5%8A%A8%E9%A9%BE%E9%A9%B6%E6%BC%94%E7%A4%BA.md)
+
+## 说明
+
+- 文档正文从官方 HTML 页面 `div.contents` 提取，并转换为 GitHub Flavored Markdown。
+- 代码块、标题、表格、图片和链接尽可能按原页面保留；相对链接已改为官方绝对链接。
+- 目录层级按官方导航中的叶子页面展开，文件使用序号前缀以避免重名。
